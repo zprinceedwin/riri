@@ -1,0 +1,81 @@
+/**
+ * Stratton API server.
+ * Hono on Node, listens on PORT (default 3001).
+ *
+ * Routes:
+ *   /api/agent/start, /api/agent/stop  -- voice agent lifecycle
+ *   /api/ingest/url, /text, /prospect  -- RAG ingest
+ *   /api/calls/:id/{transcript,summarize} + GET /:id -- post-call
+ *   /api/personas, /api/personas/:id   -- persona registry
+ *   /v1/chat/completions               -- the custom LLM proxy Agora calls
+ *   /health                            -- liveness
+ */
+import { serve } from "@hono/node-server";
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { logger } from "hono/logger";
+import { getEnv } from "./env.js";
+import { agentRoutes } from "./routes/agent.js";
+import { ingestRoutes } from "./routes/ingest.js";
+import { callRoutes } from "./routes/calls.js";
+import { personaRoutes } from "./routes/personas.js";
+import { llmRoutes } from "./routes/llm.js";
+
+const app = new Hono();
+
+app.use("*", logger());
+app.use(
+  "*",
+  cors({
+    origin: (origin) => {
+      // Permissive in dev; tighten via WEB_BASE_URL allowlist in prod
+      try {
+        const env = getEnv();
+        const allowed = [env.WEB_BASE_URL, "http://localhost:3000"];
+        if (!origin) return "*";
+        if (allowed.includes(origin)) return origin;
+        // Default: echo origin (hackathon-friendly; tighten before public launch)
+        return origin;
+      } catch {
+        return origin ?? "*";
+      }
+    },
+    credentials: true,
+  })
+);
+
+app.get("/health", (c) =>
+  c.json({
+    ok: true,
+    service: "stratton-api",
+    ts: new Date().toISOString(),
+  })
+);
+
+app.route("/api/agent", agentRoutes);
+app.route("/api/ingest", ingestRoutes);
+app.route("/api/calls", callRoutes);
+app.route("/api/personas", personaRoutes);
+app.route("/v1", llmRoutes);
+
+app.onError((err, c) => {
+  console.error("[api] unhandled error:", err);
+  return c.json({ error: "internal_error", detail: err.message }, 500);
+});
+
+const port = (() => {
+  try {
+    return getEnv().PORT;
+  } catch {
+    return Number(process.env.PORT ?? 3001);
+  }
+})();
+
+serve({ fetch: app.fetch, port }, (info) => {
+  console.log(`Stratton API listening on http://localhost:${info.port}`);
+  console.log(`  health:       http://localhost:${info.port}/health`);
+  console.log(`  llm proxy:    http://localhost:${info.port}/v1/chat/completions`);
+  console.log(`  agent start:  POST http://localhost:${info.port}/api/agent/start`);
+  console.log("");
+  console.log("Reminder: expose this with cloudflared/ngrok so Agora can reach /v1/chat/completions");
+});

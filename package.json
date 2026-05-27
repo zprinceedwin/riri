@@ -1,0 +1,25 @@
+{
+  "name": "stratton",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voice AI Sales Agents with Personality - Agora Hackathon Philippines 2026",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:api": "pnpm --filter @stratton/api dev",
+    "dev:web": "pnpm --filter @stratton/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "seed:company": "pnpm --filter @stratton/api seed:company",
+    "seed:prospect": "pnpm --filter @stratton/api seed:prospect",
+    "seed:all": "pnpm seed:company && pnpm seed:prospect"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "tsx": "^4.19.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.12.0"
+}
