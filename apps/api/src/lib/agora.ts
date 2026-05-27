@@ -10,7 +10,9 @@
  *  - The agent calls our own /v1/chat/completions as its LLM (via llm.url field)
  *  - We enable RTM data channel so the Web Toolkit can stream transcripts
  */
-import { RtcTokenBuilder, RtcRole } from "agora-token";
+import agoraToken from "agora-token";
+
+const { RtcTokenBuilder, RtcRole } = agoraToken;
 import { getEnv } from "../env.js";
 import { AGORA_DEFAULTS, type Persona } from "@riri/shared";
 
