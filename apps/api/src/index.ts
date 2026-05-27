@@ -101,6 +101,4 @@ serve({ fetch: app.fetch, port }, (info) => {
   console.log(`  llm proxy:    http://localhost:${info.port}/v1/chat/completions  (legacy, used only if not on Studio path)`);
   console.log(`  agent start:  POST http://localhost:${info.port}/api/agent/start`);
   console.log(`  clinic slots: GET  http://localhost:${info.port}/api/slots`);
-  console.log("");
-  console.log("Reminder: expose this with cloudflared/ngrok so Agora Studio can reach /mcp");
 });
