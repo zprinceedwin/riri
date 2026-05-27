@@ -12,25 +12,60 @@ Under the hood: Agora Conversational AI Engine for real-time voice (sub-650ms la
 
 ## Architecture
 
+```mermaid
+flowchart LR
+  caller["Caller / Browser<br/>Next.js dashboard"]
+  web["apps/web<br/>Agora Web SDK + RTM<br/>Push-to-talk, transcript, calendar, pipeline"]
+  api["apps/api<br/>Hono on Node<br/>agent, slots, bookings, contacts, handoffs"]
+  agoraRTC["Agora RTC + RTM<br/>audio channel + stream-message transcripts"]
+  agoraAI["Agora Conversational AI Engine<br/>/v2/projects/:appid/join"]
+  llmProxy["Custom LLM proxy<br/>/v1/chat/completions"]
+  openai["OpenAI<br/>gpt-4o-mini + gpt-4o<br/>LLM + summaries"]
+  couchbase["Couchbase Capella<br/>knowledge, calls, slots,<br/>contacts, bookings, handoffs"]
+  deepgram["Deepgram ASR<br/>Agora-native vendor"]
+  elevenlabs["ElevenLabs TTS<br/>Agora-native vendor"]
+  resend["Resend<br/>booking confirmation email"]
+
+  caller --> web
+
+  web -->|"POST /api/agent/start<br/>personaId, optional phone"| api
+  api -->|"mint RTC tokens<br/>start Sofia/Jordan/Mike agent"| agoraAI
+  api -->|"persist call session"| couchbase
+  api -->|"return appId, channel,<br/>rtcToken, callId"| web
+
+  web <-->|"join RTC channel<br/>human audio in/out"| agoraRTC
+  agoraAI <-->|"agent audio in/out"| agoraRTC
+  agoraRTC -->|"RTM stream-message<br/>live transcripts"| web
+
+  agoraAI --> deepgram
+  deepgram -->|"speech-to-text"| agoraAI
+  agoraAI -->|"agent speech synthesis"| elevenlabs
+
+  agoraAI -->|"OpenAI-compatible request<br/>with riri_context"| llmProxy
+  llmProxy -->|"vector search + context lookup<br/>clinic KB, known contact,<br/>next 14 days of slots"| couchbase
+  llmProxy -->|"augmented prompt"| openai
+  openai -->|"streamed tokens"| llmProxy
+  llmProxy -->|"SSE response"| agoraAI
+
+  web -->|"GET /api/slots<br/>poll every 3s during call"| api
+  api -->|"SQL++ list slots"| couchbase
+  web -->|"POST /api/slots/reserve<br/>POST /api/bookings/confirm"| api
+  api -->|"CAS reserve / CAS confirm<br/>slot status: available → held → booked"| couchbase
+  api -->|"best-effort confirmation"| resend
+
+  web -->|"POST transcript<br/>POST /api/calls/:id/summarize"| api
+  api -->|"summary, intent,<br/>handoffRequired"| openai
+  api -->|"store summary / create handoff"| couchbase
 ```
-Browser (Next.js + Agora Web SDK + Web Toolkit)
-   |
-   |--- start/stop agent, get RTC token ----> Backend (Hono on Node)
-   |                                            |
-   |<--- audio + transcripts -- Agora RTC <--- Backend ---> Agora Convo AI Engine
-                                                              |
-                                                              |---> Deepgram ASR
-                                                              |---> ElevenLabs TTS
-                                                              |---> /v1/chat/completions (our LLM proxy)
-                                                                       |
-                                                                       |---> vector search + slots/contacts/bookings ---> Couchbase Capella
-                                                                       |---> completion --------> OpenAI
-   |
-   |--- list slots, confirm booking ---> Backend
-                                            |
-                                            |---> CAS-based slot reservation ---> Couchbase Capella
-                                            |---> booking confirmation email ----> Resend
-```
+
+**Runtime flow:**
+
+1. The browser calls `POST /api/agent/start` with a selected persona (`sofia`, `jordan`, or `mike`) and optional caller phone number. The API looks up known contacts in Couchbase Capella, mints Agora RTC tokens, then starts an Agora Conversational AI Engine agent.
+2. The browser and the AI agent meet inside the same Agora RTC channel. Audio flows through Agora RTC; transcript events come back over Agora RTM stream messages and render live in the dashboard.
+3. Agora handles speech vendors natively: Deepgram turns caller speech into text, and ElevenLabs turns the LLM response back into Sofia's voice.
+4. For every turn, Agora calls our OpenAI-compatible `/v1/chat/completions` endpoint. The proxy retrieves relevant clinic knowledge from Couchbase Capella, injects Sofia-only context (`AVAILABLE_SLOTS` and `CONTACT`), then streams OpenAI tokens back to Agora.
+5. Booking actions go through the Hono API. Slot reservation uses a Couchbase CAS replace, so only one caller can move a slot from `available` to `held`; booking confirmation moves it to `booked`, writes the booking/contact history, and sends a best-effort Resend confirmation email.
+6. After the call, the frontend posts the transcript and asks the API to summarize. The summary includes lead score, intent, requested service/doctor/time, objections handled, cited sources, and whether a human handoff is required.
 
 **Key design choice:** Agora's `llm.url` field accepts any OpenAI-compatible endpoint. We stand up our own `/v1/chat/completions` proxy that injects RAG context from Couchbase on every turn. For Sofia we additionally inject the next 14 days of available slots and a known-contact block. This keeps voice latency low (no extra LLM round-trip for tool calls) and gives us full control over how knowledge flows into the agent.
 
