@@ -142,7 +142,7 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
           },
         ],
         greeting_message: greetingMessage,
-        greeting_configs: {
+        greeting_config: {
           mode: "single_every",
           delay_ms: 800,
           interruptable: true,
@@ -150,17 +150,12 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
         failure_message: "Sorry, I missed that -- could you say it again?",
         max_history: 12,
         params: {
-          model: env.OPENAI_LLM_MODEL,
+          model: env.ANTHROPIC_LLM_MODEL,
           riri_context: params.llmContext,
         },
       },
       asr: {
         language: AGORA_DEFAULTS.asrLanguage,
-        vendor: "deepgram",
-        params: {
-          key: env.DEEPGRAM_API_KEY,
-          model: "nova-2-general",
-        },
       },
       tts,
     },

@@ -7,11 +7,10 @@ const EnvSchema = z.object({
   AGORA_CUSTOMER_ID: z.string().min(1),
   AGORA_CUSTOMER_SECRET: z.string().min(1),
 
-  // OpenAI (optional — kept for legacy summarizer path)
-  OPENAI_API_KEY: z.string().default(""),
-  OPENAI_LLM_MODEL: z.string().default("gpt-4o-mini"),
-  OPENAI_SUMMARY_MODEL: z.string().default("gpt-4o"),
-  OPENAI_EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
+  // Anthropic (post-call summarizer)
+  ANTHROPIC_API_KEY: z.string().default(""),
+  ANTHROPIC_LLM_MODEL: z.string().default("claude-sonnet-4-6"),
+  ANTHROPIC_SUMMARY_MODEL: z.string().default("claude-haiku-4-5"),
 
   // Voyage AI (embeddings for RAG)
   VOYAGE_API_KEY: z.string().default(""),

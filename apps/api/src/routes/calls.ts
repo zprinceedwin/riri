@@ -29,7 +29,7 @@ import {
   type Handoff,
 } from "@riri/shared";
 import { getEnv } from "../env.js";
-import { getOpenAI } from "../lib/openai.js";
+import { createCompletion } from "../lib/anthropic.js";
 import {
   createHandoff,
   getCall,
@@ -122,25 +122,21 @@ callRoutes.post("/:callId/summarize", async (c) => {
     .map((t) => `${t.role === "assistant" ? "AGENT" : "CALLER"}: ${t.text}`)
     .join("\n");
 
-  const openai = getOpenAI();
-
   const systemPrompt = buildSystemPrompt(personaId);
   const userPrompt = `TRANSCRIPT of voice call (persona: ${personaId}):
 ---
 ${conversation}
----`;
+---
 
-  const completion = await openai.chat.completions.create({
-    model: env.OPENAI_SUMMARY_MODEL,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
+Return ONLY valid JSON. No markdown fences, no commentary.`;
+
+  const raw = await createCompletion({
+    model: env.ANTHROPIC_SUMMARY_MODEL,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }],
     temperature: 0.2,
-    response_format: { type: "json_object" },
+    maxTokens: 4096,
   });
-
-  const raw = completion.choices[0]?.message?.content ?? "{}";
   let parsedJson: unknown;
   try {
     parsedJson = JSON.parse(raw);
