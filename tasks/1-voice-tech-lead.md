@@ -18,8 +18,7 @@
 
 - Couchbase queries, the LLM proxy, RAG, post-call summarizer — that's Brain.
 - Dashboard layout, components, brand visuals — that's UI.
-- Persona prompt content, demo script, pitch deck — Brain owns persona content,
-  Pitcher owns the deck and script.
+- Persona prompt content, demo script, pitch deck, brand direction — all Story.
 
 ## Branch convention
 
@@ -108,7 +107,7 @@
 - [ ] V0 stable on local. Stop writing features.
 - [ ] **From this hour on, you are pure integration owner.** No new code unless
       it's a fix for a `main`-blocker.
-- [ ] Help Pitcher record the backup demo video at 3:30 sharp (run the demo
+- [ ] Help Story record the backup demo video at 3:30 sharp (run the demo
       end-to-end so they can OBS-record it).
 
 ### H6 (3:30–5:30 PM)
@@ -125,11 +124,11 @@
 
 ### H7 (5:30–6:30 PM)
 
-- [ ] 3 demo rehearsals on real venue WiFi, end-to-end with Pitcher.
+- [ ] 3 demo rehearsals on real venue WiFi, end-to-end with Story.
 - [ ] Have the cloudflared backup tunnel command in your terminal scrollback
       ready to copy-paste if the deployed URL flakes mid-demo.
 - [ ] Be on the laptop during the actual pitch — you operate the dashboard,
-      Pitcher delivers the words.
+      Story delivers the words.
 
 ## Definition of done — per phase
 
@@ -162,9 +161,9 @@
 
 - **H2 done → Brain:** "LLM proxy URL is alive at <cloudflared URL>, set
   `LLM_PROXY_URL=<...>` in your `.env`."
-- **H3 done → Pitcher:** "Integration is green, full demo flow works."
-- **H5 done → Pitcher:** "V0 stable, ready to record backup video now."
-- **H6 done → Pitcher:** "Production URL is <Vercel URL>, smoke-tested, demo
+- **H3 done → Story:** "Integration is green, full demo flow works."
+- **H5 done → Story:** "V0 stable, ready to record backup video now."
+- **H6 done → Story:** "Production URL is <Vercel URL>, smoke-tested, demo
   ready against real venue WiFi."
 - **H6 done → Brain + UI:** "Both deploys live, both ENVs set, no further
   feature merges until after the pitch."
@@ -176,7 +175,7 @@
 - [ ] H2: LLM URL public via cloudflared and reachable by Agora
 - [ ] H3: 🛑 Integration gate passed (button → Sofia → transcript → summary)
 - [ ] H4: Interruption + double-end + contact-lookup hardened
-- [ ] H5: V0 frozen on local; help Pitcher capture backup video
+- [ ] H5: V0 frozen on local; help Story capture backup video
 - [ ] H6: Railway + Vercel deploys live with all env vars; URLs smoke-tested
 - [ ] H7: 3 venue-WiFi rehearsals; backup tunnel pre-staged in terminal
-- [ ] 7:15 PM: Hands on the laptop, Pitcher on the mic, dashboard reveal cued
+- [ ] 7:15 PM: Hands on the laptop, Story on the mic, dashboard reveal cued

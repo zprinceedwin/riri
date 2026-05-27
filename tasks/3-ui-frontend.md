@@ -2,7 +2,7 @@
 
 > You own everything the user sees: the Next.js dashboard, every component, the
 > live calendar, the post-call summary, the brand visual kit. Your work is
-> what the judges look at while Pitcher talks.
+> what the judges look at while Story talks.
 
 ## Scope (what you own end-to-end)
 
@@ -14,16 +14,17 @@
   what Voice's `lib/agora.ts` emits and render it).
 - The post-call summary screen at `/summary/[callId]`.
 - Vercel deployment of the web app.
-- **Brand kit** (delegated from the old Person 4): logo lockup, color palette,
-  type scale, the dark-slate + warm-gold aesthetic in `globals.css` and
-  `tailwind.config.ts`.
+- **Brand visual implementation:** logo lockup component, the dark-slate +
+  warm-gold aesthetic in `globals.css` and `tailwind.config.ts`, type scale,
+  utility classes (`glass-card`, `pill`). Story owns brand *direction* (the
+  tone, the copy voice, the intent behind the palette); you implement it.
 
 ## Not your scope
 
 - Agora SDK plumbing or RTC token logic — Voice owns `lib/agora.ts` (you
   consume its public API).
 - API routes, Couchbase, LLM proxy, Resend — Brain owns everything backend.
-- Pitch deck, demo script, backup video — Pitcher.
+- Pitch deck, demo script, backup video, brand direction + copywriting — Story.
 - Persona JSON content — Brain.
 
 ## Branch convention
@@ -113,7 +114,7 @@
     confirms.
 - [ ] Mobile-responsive smoke test (judges might glance at a phone): the grid
       stacks gracefully on `lg:` breakpoint.
-- [ ] Help Pitcher capture the backup video by running the demo flow flawlessly
+- [ ] Help Story capture the backup video by running the demo flow flawlessly
       while they OBS-record at 3:30.
 
 ### H6 (3:30–5:30 PM)
@@ -130,7 +131,7 @@
 ### H7 (5:30–6:30 PM)
 
 - [ ] Stop touching the FE. The Vercel deploy is frozen.
-- [ ] Run 3 rehearsals end-to-end with Pitcher and Voice.
+- [ ] Run 3 rehearsals end-to-end with Story and Voice.
 - [ ] Be ready to hotfix Vercel from your laptop if a deploy goes sideways
       during the actual pitch.
 
@@ -168,17 +169,21 @@
 - **TailwindCSS purge.** Don't dynamically construct class names like
   `bg-${color}-500` — they get purged. Use a switch.
 
-## Brand kit reference (owned by you)
+## Brand kit reference (you implement; Story directs)
+
+The visual implementation lives in this repo (you own). The intent and
+copy choices behind it belong to Story — if they want to shift palette
+emphasis or change a tagline, edit on their say-so.
 
 - **Palette:** `ink-*` (dark slate scale, 50–950) and `gold-*` (warm gold,
   400–700). Already in `tailwind.config.ts`. Do not add new accent colors
-  without ping.
+  without checking with Story.
 - **Components:** `glass-card` utility for surfaces, `pill` utility for tags.
 - **Type:** display + sans both fall through to system stack. Inter is
   preferred but not mandatory (we don't load a webfont to keep cold-start fast).
 - **Logo:** the gold square with white "R" + the wordmark "Riri" + the
-  "AI Sales Closer" / for clinic V0 you may swap that line to "AI Receptionist"
-  if Pitcher agrees.
+  "AI Sales Closer" tagline. For clinic V0 you may swap that line to "AI
+  Receptionist" — confirm with Story first; the wording is theirs.
 - **Spacing:** 4-pt grid. All padding/margin uses Tailwind's default scale.
 
 ## Handoff signals you must send
@@ -187,10 +192,10 @@
   ready to consume `onTranscript` + `onAgentState`."
 - **H2 done → Voice + Brain:** "TranscriptPanel renders turns; format I expect
   is `{ role, text, ts, turnId, final }`."
-- **H3 done → Pitcher:** "Dashboard is ready to demo. Calendar + Pipeline +
+- **H3 done → Story:** "Dashboard is ready to demo. Calendar + Pipeline +
   Stats are all live-wired."
-- **H4 done → Pitcher:** "Summary page is ready, LeadScoreCard hero renders."
-- **H6 done → Pitcher + Voice:** "Vercel URL is `<...>`, deploy is frozen,
+- **H4 done → Story:** "Summary page is ready, LeadScoreCard hero renders."
+- **H6 done → Story + Voice:** "Vercel URL is `<...>`, deploy is frozen,
   ready for rehearsals."
 
 ## At-a-glance checklist
@@ -200,6 +205,6 @@
 - [ ] H2: TranscriptPanel renders turns from Voice's pipeline
 - [ ] H3: 🛑 Integration gate; Calendar, Pipeline, Stats, Handoffs wired
 - [ ] H4: Summary hero LeadScoreCard; handoff banner; clinic lead fields
-- [ ] H5: Micro-animations; mobile-safe; backup video captured with Pitcher
+- [ ] H5: Micro-animations; mobile-safe; backup video captured with Story
 - [ ] H6: Vercel live; full flow on production URL
 - [ ] H7: FE frozen; 3 rehearsals; ready to hotfix

@@ -2,9 +2,9 @@
 
 > You own the brain: Couchbase Capella, the custom LLM proxy, the RAG pipeline,
 > the clinic primitives (slot CAS, booking confirm, contacts, handoffs), the
-> Resend email pipeline, the post-call summarizer, and — newly — the persona
-> prompt content. If a request leaves Agora and isn't an RTC packet, it ends
-> up in your code.
+> Resend email pipeline, the post-call summarizer, and all the seed-script
+> code. If a request leaves Agora and isn't an RTC packet, it ends up in your
+> code.
 
 ## Scope (what you own end-to-end)
 
@@ -20,15 +20,22 @@
   - Handoff create + list-pending + resolve.
 - Resend transactional email for booking confirmation (fetch-based, no SDK).
 - Post-call summary endpoint with intent + handoff + clinic lead fields.
-- Seed scripts: `seed:company`, `seed:prospect`, `seed:clinic`.
-- **Persona JSON content + system prompts** (delegated from the old Person 4).
-  Wiring is done; you tune the words.
+- Seed scripts (the *code*): `seed:company`, `seed:prospect`, `seed:clinic`.
+  Story owns the content strings inside `seed-clinic.ts` (clinic overview,
+  FAQ, objection playbook). You wire them; you reseed when they change.
+- Persona registry code (`packages/personas/src/index.ts`). Content in the
+  `*.json` files is Story's — you wire it.
 
 ## Not your scope
 
 - Agora REST or RTC plumbing — Voice owns `routes/agent.ts` and `lib/agora.ts`.
 - Frontend pages or components — UI owns everything under `apps/web/`.
-- Pitch deck, demo script, backup video, submission paperwork — Pitcher.
+- **Persona JSON content** (`packages/personas/*.json`) — Story.
+- **Seed text strings** (`CLINIC_OVERVIEW`, `FAQ_DOC`, `OBJECTION_PLAYBOOK`
+  in `seed-clinic.ts`, service `description`s and doctor `bio`s in
+  `clinic-catalog.ts`) — Story. You may move them around; you may not
+  edit the prose.
+- Pitch deck, demo script, backup video, submission paperwork — Story.
 
 ## Branch convention
 
@@ -54,20 +61,21 @@
 - `apps/api/src/lib/scrape.ts`
 - `apps/api/src/seed/seed-company.ts`
 - `apps/api/src/seed/seed-prospect.ts`
-- `apps/api/src/seed/seed-clinic.ts`
-- `packages/personas/sofia.json`
-- `packages/personas/jordan.json`
-- `packages/personas/mike.json`
-- `packages/personas/src/index.ts`
+- `apps/api/src/seed/seed-clinic.ts` (code structure; Story owns the prose
+  inside the `CLINIC_OVERVIEW` / `FAQ_DOC` / `OBJECTION_PLAYBOOK` strings)
+- `packages/personas/src/index.ts` (registry code only — JSON content is Story)
 - `infra/couchbase-vector-index.md`
-- `docs/PITCH_PROMPTS.md` (the prompt iteration log)
 
 ## Files you must NOT touch
 
 - `apps/api/src/routes/agent.ts`, `apps/api/src/lib/agora.ts`,
   `apps/api/src/lib/store.ts` — Voice.
 - Anything under `apps/web/` — UI.
-- `docs/DEMO_SCRIPT.md`, the pitch deck — Pitcher.
+- `packages/personas/sofia.json`, `jordan.json`, `mike.json` — Story.
+- The prose strings inside `apps/api/src/seed/seed-clinic.ts` and the
+  `description` / `bio` fields in `apps/api/src/lib/clinic-catalog.ts` —
+  Story.
+- `docs/DEMO_SCRIPT.md`, `docs/PITCH_PROMPTS.md`, the pitch deck — Story.
 
 ## Hour-by-hour tasks
 
@@ -124,7 +132,7 @@
 - [ ] Test the full booking flow: hold a slot via `/reserve` → call `/confirm`
       → verify Couchbase has the booking + contact updated + slot status
       flipped to `booked`.
-- [ ] Test the Resend pipeline with a real email address (Pitcher's or your
+- [ ] Test the Resend pipeline with a real email address (Story's or your
       own). Confirm the HTML template renders and the X-Riri-Call-Id header
       is present.
 - [ ] Post-call summary endpoint:
@@ -135,15 +143,15 @@
 
 ### H5 (2:30–3:30 PM) — V0 BULLETPROOF DEADLINE
 
-- [ ] Tune Sofia's prompt with live testing. Log every iteration in
-      `docs/PITCH_PROMPTS.md`.
+- [ ] Sit with Story during live testing of Sofia. Story edits the JSON;
+      you reseed and observe how RAG retrieval responds to each change.
 - [ ] Verify the AVAILABLE_SLOTS block stays under ~600 tokens (Sofia gets
       confused if it's huge).
 - [ ] Vector search latency: target < 250 ms per turn. If higher, drop top-k
       to 3 or raise numCandidates.
 - [ ] Pre-warm Capella by running 5 dummy RAG queries — first call after
       idle can spike to seconds.
-- [ ] Help Voice + Pitcher capture the backup video at 3:30 by being ready
+- [ ] Help Voice + Story capture the backup video at 3:30 by being ready
       to defend the seed data and reseed if anything got polluted.
 
 ### H6 (3:30–5:30 PM)
@@ -162,8 +170,8 @@
 
 - [ ] Stop touching the backend. Hand the keyboard to Voice for the deploy
       bug-fix queue.
-- [ ] Sit next to Pitcher during rehearsals. If Sofia hallucinates anything,
-      you patch the prompt in real-time and redeploy with Voice.
+- [ ] Sit next to Story during rehearsals. If Sofia hallucinates anything,
+      Story rewrites the JSON line, you redeploy with Voice in < 60 seconds.
 
 ## Definition of done — per phase
 
@@ -174,9 +182,9 @@
 | H2 | LLM proxy streams full completions with RAG context to a real client |
 | H3 | `seed:clinic` populates everything; Sofia sees slots + contact in prompt |
 | H4 | Full hold → confirm flow works; Resend email arrives; handoff records create |
-| H5 | Sofia talks naturally, never invents facts, escalates on medical questions |
+| H5 | RAG + AVAILABLE_SLOTS retrieval is < 250 ms; reseed loop with Story is one keystroke |
 | H6 | Deployed API serves the same flow on Railway URL with Capella in cloud |
-| H7 | No further backend merges; Pitcher's rehearsals run cleanly |
+| H7 | No further backend merges; Story's rehearsals run cleanly |
 
 ## Common pitfalls
 
@@ -198,23 +206,23 @@
 - **Connection pool warmup.** First Couchbase call after a cold serve can take
   2+ seconds. Pre-warm in `serve()` callback if cold-start matters in prod.
 
-## Persona prompt content rules (Sofia)
+## Working with Story (persona prompts + seed content)
 
-Sofia's system prompt lives in `packages/personas/sofia.json`. When you tune it:
+Story owns every string the agent or the audience reads. You own the
+plumbing. Concretely:
 
-1. **Voice-first.** No markdown, no bullets, no URL-reading. Already in the prompt;
-   don't relax it.
-2. **Name capture is the first action.** Don't let her open with anything else.
-3. **Only cite from CONTEXT and AVAILABLE_SLOTS.** Hallucinated doctors, prices,
-   or services are demo-killers.
-4. **Medical questions trigger an immediate handoff.** Non-negotiable for liability
-   and for the "knows its lane" pitch beat.
-5. **Two specific options at a time when offering slots.** Sofia gets overwhelming
-   if she lists everything available.
-6. **Numbers in words.** "Eighteen thousand pesos", not "₱18,000".
+- Story edits `packages/personas/sofia.json` and the prose strings in
+  `apps/api/src/seed/seed-clinic.ts` + `apps/api/src/lib/clinic-catalog.ts`.
+- You re-run `pnpm seed:clinic` whenever Story signals "content updated".
+- You're the first responder if Sofia behaves badly in dev. Most fixes are
+  content fixes — push them to Story. Code-side fixes (RAG retrieval,
+  injection order, prompt assembly) are yours.
 
-Test each prompt change with a 30-second flow: hook → service ask → price test
-→ close. Log the change in `docs/PITCH_PROMPTS.md`.
+When you patch Sofia at runtime (mid-rehearsal hotfix):
+- Edit the persona JSON in-line on the deploy host if it's faster than a
+  redeploy. The prod box reads the JSON at startup, so a redeploy is needed
+  for it to take effect.
+- Or: ask Story to amend the source JSON, then redeploy from `main`.
 
 ## Handoff signals you must send
 
@@ -225,10 +233,12 @@ Test each prompt change with a 30-second flow: hook → service ask → price te
 - **H3 done → UI:** "All clinic endpoints are live; here are the routes you
   can hit from the dashboard. Seed has been run; expect 5 contacts, 3 bookings,
   ~50% slot fill."
+- **H3 done → Story:** "`seed:clinic` is wired against your v1 content. Edit
+  the strings in `seed-clinic.ts` / `sofia.json` and ping me to reseed."
 - **H4 done → UI:** "Booking confirm + email pipeline is real. You can call
   `/api/bookings/confirm` from a test page if you want a flash highlight."
-- **H5 → Pitcher:** "Sofia's prompt is locked. If she still hallucinates on
-  X, here's the workaround / the answer is in [CONTEXT key]."
+- **H5 → Story:** "Sofia's prompt is locked from your last edit. If she still
+  hallucinates on X, the answer is in [CONTEXT key]."
 
 ## At-a-glance checklist
 
@@ -237,6 +247,6 @@ Test each prompt change with a 30-second flow: hook → service ask → price te
 - [ ] H2: LLM proxy streaming + RAG injection working
 - [ ] H3: 🛑 Integration gate passed; `seed:clinic` populated
 - [ ] H4: Hold → confirm → Resend email + handoff records all real
-- [ ] H5: Sofia prompt tuned, hallucination-free in 5 test calls
+- [ ] H5: Reseed loop with Story is < 60 s end-to-end; retrieval < 250 ms
 - [ ] H6: API deployed to Railway; Capella in cloud serves prod traffic
-- [ ] H7: Backend frozen; sit with Pitcher; patch prompts on demand
+- [ ] H7: Backend frozen; sit with Story; redeploy patched prompts on demand

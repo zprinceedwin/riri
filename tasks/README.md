@@ -10,24 +10,27 @@ at 7:15 PM.
 | # | Role | File | One-line |
 |---|------|------|----------|
 | 1 | **Voice / Tech Lead** | [`1-voice-tech-lead.md`](1-voice-tech-lead.md) | Owns Agora end-to-end and is the integration owner who merges to `main`. |
-| 2 | **Brain / Backend** | [`2-brain-backend.md`](2-brain-backend.md) | Owns Couchbase + the custom LLM proxy + clinic primitives + Resend + persona prompts. |
-| 3 | **UI / Frontend** | [`3-ui-frontend.md`](3-ui-frontend.md) | Owns the Next.js dashboard, every component, and the brand visual kit. |
-| 4 | **Pitcher** | [`4-pitcher.md`](4-pitcher.md) | Owns the 5-minute pitch, the deck, rehearsals, the backup demo video, and the submission paperwork. |
+| 2 | **Brain / Backend** | [`2-brain-backend.md`](2-brain-backend.md) | Owns Couchbase + the custom LLM proxy + clinic primitives (slot CAS, bookings, contacts, handoffs) + Resend + seed-script code. |
+| 3 | **UI / Frontend** | [`3-ui-frontend.md`](3-ui-frontend.md) | Owns the Next.js dashboard, every component, the brand visual implementation, and the Vercel deploy. |
+| 4 | **Story & Content** | [`4-story-content.md`](4-story-content.md) | Owns every word: persona JSON content, seed playbook prose, demo script, pitch deck, pitch delivery, brand direction, and submission paperwork. |
 
-## How we split the old Person-4 work
+## How the work splits along the code / content seam
 
-The original plan put Story + Product + Persona prompts + Pitch all on a single
-person. We split the **pitch** out as its own dedicated role (Role 4) and
-**delegated the rest**:
+Brain and Story share files but on different axes — code vs prose. Anywhere
+this matters:
 
-- **Persona JSON content + system prompts + seed playbook content** → Brain/Backend.
-  Brain already owns the LLM proxy, the seed scripts, and the context-injection
-  layer, so the persona prompts live in the same swimlane as the code that uses
-  them.
-- **Brand kit + logo + palette + visual demo polish** → UI/Frontend. UI owns the
-  visual layer end to end, so the brand belongs there.
-- **Demo script (`docs/DEMO_SCRIPT.md`)** → Pitcher. It's the script Pitcher
-  delivers, so they edit it.
+| File or area | Code (Brain) | Content (Story) |
+|---|---|---|
+| `packages/personas/sofia.json` etc. | registry wiring (`src/index.ts`) | the system prompt + greeting + voice notes |
+| `apps/api/src/seed/seed-clinic.ts` | script structure, embedding pipeline, Couchbase upserts | the `CLINIC_OVERVIEW` / `FAQ_DOC` / `OBJECTION_PLAYBOOK` strings |
+| `apps/api/src/lib/clinic-catalog.ts` | the array shapes, the IDs, the prices | `description` text on each service, `bio` text on each doctor |
+| `docs/PITCH_PROMPTS.md` | (nothing) | the prompt-iteration log; Story writes every entry |
+| `docs/DEMO_SCRIPT.md` | (nothing) | Story owns top to bottom |
+| `tailwind.config.ts` + `globals.css` | UI implements palette + utilities | Story directs intent (what each color means, what the tone is) |
+
+Brain reseeds when Story signals "content updated"; UI repaints when Story
+signals "tone shifted". The compile-time wiring stays with the engineers; the
+prose stays with the writer.
 
 ## How to use this folder
 
@@ -38,8 +41,8 @@ person. We split the **pitch** out as its own dedicated role (Role 4) and
    tells you which dependencies are now blocked.
 3. **"Files you own"** is the swimlane — only this role merges changes there
    without prior ping.
-4. **"Files you must NOT touch"** is the explicit anti-collision rule. Stay out
-   of other people's swimlanes unless you ping the owner first.
+4. **"Files you must NOT touch"** is the explicit anti-collision rule. Stay
+   out of other people's swimlanes unless you ping the owner first.
 5. **"Handoff signals"** is the queue of pings to other roles you need to send
    at specific moments (e.g. Voice telling Brain "LLM proxy URL is alive at X").
 6. **"Definition of done"** at each phase is the only thing that lets you move
@@ -57,9 +60,9 @@ unless Voice is offline.
 - **H3 — 1:30 PM**: end-to-end integration gate. Press the button, Sofia
   talks, calendar updates, transcript appears. If this fails, **all V1
   features are cancelled** and the whole team converges on V0 polish.
-- **H5 — 3:30 PM**: backup demo video recorded no matter what. Pitcher
+- **H5 — 3:30 PM**: backup demo video recorded no matter what. Story
   enforces this with a calendar alert.
 - **H6 — 4:30 PM**: production deploys live on Vercel + Railway with real
   URLs smoke-tested.
-- **6:55 PM**: pre-submission smoke test (see `4-pitcher.md`).
+- **6:55 PM**: pre-submission smoke test (see `4-story-content.md`).
 - **7:15 PM**: submission at [convoai.club](https://convoai.club).
