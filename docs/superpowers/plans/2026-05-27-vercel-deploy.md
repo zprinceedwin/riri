@@ -420,14 +420,9 @@ AGORA_APP_CERTIFICATE=your_agora_app_certificate_here
 AGORA_CUSTOMER_ID=your_agora_customer_id_here
 AGORA_CUSTOMER_SECRET=your_agora_customer_secret_here
 
-ANTHROPIC_API_KEY=your_anthropic_key_here
-ANTHROPIC_LLM_MODEL=claude-sonnet-4-6
-ANTHROPIC_SUMMARY_MODEL=claude-haiku-4-5
-
 OPENAI_API_KEY=your_openai_key_here
 OPENAI_LLM_MODEL=gpt-4o-mini
 OPENAI_SUMMARY_MODEL=gpt-4o
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 
 VOYAGE_API_KEY=your_voyage_key_here
 VOYAGE_EMBEDDING_MODEL=voyage-3-large
@@ -445,7 +440,6 @@ RESEND_FROM_EMAIL=Riri Clinic <onboarding@resend.dev>
 
 SUPABASE_URL=https://your_project_ref.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-SUPABASE_EMBEDDING_DIMENSIONS=1536
 
 CLINIC_NAME=Belle Aesthetic Manila
 CLINIC_DEMO_NAMESPACE=clinic-belle-manila

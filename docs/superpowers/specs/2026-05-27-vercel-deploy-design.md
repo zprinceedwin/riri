@@ -24,7 +24,6 @@ Give `apps/api` a permanent public HTTPS URL by deploying it to Vercel, then poi
 - Deploying `apps/web` (it stays on local `pnpm dev` for the demo).
 - Adding a `tsc` build step — `tsx` and Vercel's bundler handle TS at deploy time.
 - CI/CD, preview environments, secrets rotation tooling.
-- Fixing the `VOYAGE_EMBEDDING_DIMENSIONS=1024` vs `SUPABASE_EMBEDDING_DIMENSIONS=1536` mismatch in [.env.example](../../../.env.example) — flagged as a separate bug.
 
 ## Why Vercel (and what you give up)
 
@@ -148,4 +147,3 @@ The cloudflared script still works: `cloudflared tunnel --url http://localhost:3
 - Web is not deployed.
 - No CI; deploys are triggered by `git push` to whatever branch Vercel watches.
 - No Dockerfile. No `tsc` step. No Edge runtime.
-- The Voyage/Supabase embedding dim mismatch in `.env.example` is a separate bug.
