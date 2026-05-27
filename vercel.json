@@ -1,6 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "echo Skip workspace build - api/index.ts is bundled by Vercel directly",
+  "framework": null,
   "rewrites": [
     { "source": "/(.*)", "destination": "/api" }
   ]
