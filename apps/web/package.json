@@ -1,5 +1,5 @@
 {
-  "name": "@stratton/web",
+  "name": "@riri/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,8 +11,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@stratton/personas": "workspace:*",
-    "@stratton/shared": "workspace:*",
+    "@riri/personas": "workspace:*",
+    "@riri/shared": "workspace:*",
     "agora-rtc-sdk-ng": "^4.22.0",
     "agora-rtm-sdk": "^2.2.1",
     "clsx": "^2.1.1",

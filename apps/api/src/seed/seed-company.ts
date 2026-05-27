@@ -34,7 +34,7 @@ const COUCHBASE_SEED: SeedDoc[] = [
   {
     title: "Performance and scale story",
     source: "couchbase.com/why-couchbase",
-    text: `Couchbase serves sub-millisecond reads at scale through its memory-first architecture. It scales horizontally with auto-sharding, runs multi-dimensional scaling so you can scale query, index, search, and data services independently, and supports cross-data-center replication for global low-latency. The Mobile and Edge SDKs let the same engine run on devices, on edge servers, and in cloud, with built-in sync. For real-time AI agents like Stratton, that means low-latency RAG retrieval next to fresh operational data, no eventual-consistency surprises.`,
+    text: `Couchbase serves sub-millisecond reads at scale through its memory-first architecture. It scales horizontally with auto-sharding, runs multi-dimensional scaling so you can scale query, index, search, and data services independently, and supports cross-data-center replication for global low-latency. The Mobile and Edge SDKs let the same engine run on devices, on edge servers, and in cloud, with built-in sync. For real-time AI agents like Riri, that means low-latency RAG retrieval next to fresh operational data, no eventual-consistency surprises.`,
   },
   {
     title: "Customer outcomes",
@@ -48,7 +48,7 @@ const COUCHBASE_SEED: SeedDoc[] = [
   },
   {
     title: "Common objections and how to handle them",
-    source: "stratton-internal-playbook",
+    source: "Riri-internal-playbook",
     text: `OBJECTION: "We already use MongoDB Atlas and added Atlas Vector Search." RESPONSE: Atlas Vector Search is a separate service with its own scaling, billing, and consistency model -- it's a bolt-on, not native. Capella was designed from day one to have vectors next to operational JSON in one engine. Customers consolidating from Mongo + Pinecone + Redis to Capella usually see 30 to 50 percent infrastructure cost reduction and simpler ops.
 
 OBJECTION: "We use Pinecone for vector search." RESPONSE: Pinecone is excellent for pure vector search but means you copy your operational data into a second system, keep two indexes in sync, and pay a second bill. With Capella you write once, query JSON and vectors together, and your AI app doesn't need a sync pipeline.
@@ -61,7 +61,7 @@ OBJECTION: "Is it production-ready for finance-grade workloads?" RESPONSE: PayPa
   },
   {
     title: "Discovery questions Jordan and Mike should ask",
-    source: "stratton-internal-playbook",
+    source: "Riri-internal-playbook",
     text: `1. "What's your current stack for storing customer data and powering search or AI features?"
 2. "How many vectors are you running today, and where do you expect to be in twelve months?"
 3. "When you ship a new AI feature, how long does it take to get fresh data into the vector store and into production? Days? Weeks?"
@@ -70,7 +70,7 @@ OBJECTION: "Is it production-ready for finance-grade workloads?" RESPONSE: PayPa
   },
   {
     title: "Differentiation cheat sheet",
-    source: "stratton-internal-playbook",
+    source: "Riri-internal-playbook",
     text: `One sentence: Couchbase is the only database that gives you key-value, document, SQL, search, analytics, and vector search in one engine, one query language, and one cost model -- so you can build modern AI apps without a sprawling sync pipeline. Where MongoDB needs Atlas Vector Search bolted on, Pinecone needs a separate sync, and Postgres + pgvector hits a scale ceiling, Capella was designed for this from the start.`,
   },
 ];

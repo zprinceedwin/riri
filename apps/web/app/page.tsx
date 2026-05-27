@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Persona, PersonaId } from "@stratton/shared";
+import type { Persona, PersonaId } from "@riri/shared";
 import { BrandMark } from "@/components/Brand";
 import { AgentStateBadge } from "@/components/AgentStateBadge";
 import { TranscriptPanel, type TranscriptItem } from "@/components/TranscriptPanel";
@@ -113,9 +113,9 @@ export default function Dashboard() {
           Voice AI sales agents — with the personality of a real closer.
         </h1>
         <p className="max-w-2xl text-sm leading-relaxed text-ink-300">
-          Stratton hires {activePersona?.displayName ?? "Jordan"} to handle the call. Real-time voice
+          Riri hires {activePersona?.displayName ?? "Jordan"} to handle the call. Real-time voice
           on Agora, photographic memory on Couchbase. Press the button, talk like a prospect, see
-          how Stratton works the deal.
+          how Riri works the deal.
         </p>
       </section>
 

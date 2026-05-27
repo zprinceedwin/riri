@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Stratton brand: deep slate + warm gold accent
+        // Riri brand: deep slate + warm gold accent
         ink: {
           50: "#f4f5f7",
           100: "#e6e8ec",

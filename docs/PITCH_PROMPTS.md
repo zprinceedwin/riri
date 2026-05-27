@@ -1,4 +1,4 @@
-# Pitch Prompts (the soul of Stratton)
+# Pitch Prompts (the soul of Riri)
 
 The full system prompts are in [packages/personas/jordan.json](../packages/personas/jordan.json) and [packages/personas/mike.json](../packages/personas/mike.json). This doc is the **iteration log** — the lessons we learn during the day live here.
 

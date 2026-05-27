@@ -11,9 +11,9 @@
 
 ## Project description (paste into submission form)
 
-> **Stratton — Voice AI Sales Agents with Personality**
+> **Riri — Voice AI Sales Agents with Personality**
 >
-> Stratton lets any B2B company spin up a voice AI sales agent with a configurable persona — from Wolf-of-Wall-Street energy to consultative enterprise calm. Built on Agora's Conversational AI Engine for sub-650-millisecond real-time voice with native interruption handling. Powered by Couchbase Capella vector RAG over the company's product knowledge and per-prospect intel — so the agent has photographic memory of every deal. Shipped in 7 hours by 4 engineers using TRAE and Cursor.
+> Riri lets any B2B company spin up a voice AI sales agent with a configurable persona — from Wolf-of-Wall-Street energy to consultative enterprise calm. Built on Agora's Conversational AI Engine for sub-650-millisecond real-time voice with native interruption handling. Powered by Couchbase Capella vector RAG over the company's product knowledge and per-prospect intel — so the agent has photographic memory of every deal. Shipped in 7 hours by 4 engineers using TRAE and Cursor.
 >
 > **Sponsors used:**
 > - **Agora** — Conversational AI Engine + Web SDK + custom LLM proxy. Sub-650ms latency and interruption handling are the core voice wow.

@@ -1,5 +1,5 @@
 /**
- * Stratton API server.
+ * Riri API server.
  * Hono on Node, listens on PORT (default 3001).
  *
  * Routes:
@@ -47,7 +47,7 @@ app.use(
 app.get("/health", (c) =>
   c.json({
     ok: true,
-    service: "stratton-api",
+    service: "Riri-api",
     ts: new Date().toISOString(),
   })
 );
@@ -72,7 +72,7 @@ const port = (() => {
 })();
 
 serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`Stratton API listening on http://localhost:${info.port}`);
+  console.log(`Riri API listening on http://localhost:${info.port}`);
   console.log(`  health:       http://localhost:${info.port}/health`);
   console.log(`  llm proxy:    http://localhost:${info.port}/v1/chat/completions`);
   console.log(`  agent start:  POST http://localhost:${info.port}/api/agent/start`);

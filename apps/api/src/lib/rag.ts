@@ -3,7 +3,7 @@
  * relevant chunks from Couchbase. Used by the LLM proxy on every turn
  * and by the post-call summary endpoint.
  */
-import type { RagChunk } from "@stratton/shared";
+import type { RagChunk } from "@riri/shared";
 import { vectorSearch } from "./couchbase.js";
 import { embed } from "./openai.js";
 

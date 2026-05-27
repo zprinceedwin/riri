@@ -25,11 +25,11 @@ const EnvSchema = z.object({
   COUCHBASE_CONNECTION_STRING: z.string().min(1),
   COUCHBASE_USERNAME: z.string().min(1),
   COUCHBASE_PASSWORD: z.string().min(1),
-  COUCHBASE_BUCKET: z.string().default("stratton"),
+  COUCHBASE_BUCKET: z.string().default("Riri"),
   COUCHBASE_SCOPE: z.string().default("_default"),
   COUCHBASE_COLLECTION_KNOWLEDGE: z.string().default("knowledge"),
   COUCHBASE_COLLECTION_CALLS: z.string().default("calls"),
-  COUCHBASE_VECTOR_INDEX: z.string().default("stratton_vector_idx"),
+  COUCHBASE_VECTOR_INDEX: z.string().default("riri_vector_idx"),
 
   // App
   PORT: z.coerce.number().default(3001),

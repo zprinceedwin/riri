@@ -1,5 +1,5 @@
 {
-  "name": "@stratton/api",
+  "name": "@riri/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.13.2",
-    "@stratton/personas": "workspace:*",
-    "@stratton/shared": "workspace:*",
+    "@riri/personas": "workspace:*",
+    "@riri/shared": "workspace:*",
     "agora-token": "^2.0.5",
     "cheerio": "^1.0.0",
     "couchbase": "^4.4.4",

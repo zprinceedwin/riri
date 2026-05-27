@@ -1,14 +1,14 @@
-# Stratton Plan
+# Riri Plan
 
 The full plan lives in the Cursor workspace at:
 
-`c:\Users\Prince\.cursor\plans\stratton_hackathon_build_plan_d63702ff.plan.md`
+`c:\Users\Prince\.cursor\plans\Riri_hackathon_build_plan_d63702ff.plan.md`
 
 This file is a stable mirror of the key decisions so the team can read it in-repo.
 
 ## Product
 
-- **Name:** Stratton (Voice AI Sales Agents with Personality)
+- **Name:** Riri (Voice AI Sales Agents with Personality)
 - **Tagline:** "Voice AI sales agents — with the personality of a real closer."
 - **Showcase personas:** Jordan (Wolf-of-Wall-Street vibes) and Mike (Suits vibes)
 - **Demo company:** sell Couchbase to a fictional fintech prospect (Voltline) — sponsor brownie points, knowledge is already public, story is plausible
@@ -39,7 +39,7 @@ By 1:30 PM (end of H3): press the button → agent joins → Couchbase RAG retri
 ## Pre-event checklist (each person)
 
 - Agora dev account, App ID, customer key + secret.
-- Couchbase Capella free-tier cluster, bucket `stratton`, vector index per [infra/couchbase-vector-index.md](../infra/couchbase-vector-index.md).
+- Couchbase Capella free-tier cluster, bucket `Riri`, vector index per [infra/couchbase-vector-index.md](../infra/couchbase-vector-index.md).
 - OpenAI API key, ElevenLabs trial key, Deepgram trial key.
 - `pnpm install` works from repo root.
 - `cloudflared` or `ngrok` installed (so Agora can reach `/v1/chat/completions` on your laptop during dev).

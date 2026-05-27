@@ -1,16 +1,16 @@
 {
-  "name": "stratton",
+  "name": "Riri",
   "version": "0.1.0",
   "private": true,
   "description": "Voice AI Sales Agents with Personality - Agora Hackathon Philippines 2026",
   "scripts": {
     "dev": "pnpm -r --parallel dev",
-    "dev:api": "pnpm --filter @stratton/api dev",
-    "dev:web": "pnpm --filter @stratton/web dev",
+    "dev:api": "pnpm --filter @riri/api dev",
+    "dev:web": "pnpm --filter @riri/web dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "seed:company": "pnpm --filter @stratton/api seed:company",
-    "seed:prospect": "pnpm --filter @stratton/api seed:prospect",
+    "seed:company": "pnpm --filter @riri/api seed:company",
+    "seed:prospect": "pnpm --filter @riri/api seed:prospect",
     "seed:all": "pnpm seed:company && pnpm seed:prospect"
   },
   "devDependencies": {

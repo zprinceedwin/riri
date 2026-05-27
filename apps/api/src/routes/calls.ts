@@ -14,7 +14,7 @@ import {
   CallSummarySchema,
   type CallSummary,
   CapturedLeadSchema,
-} from "@stratton/shared";
+} from "@riri/shared";
 import { getEnv } from "../env.js";
 import { getOpenAI } from "../lib/openai.js";
 import { getCall, upsertCall, type StoredCall } from "../lib/couchbase.js";

@@ -1,10 +1,10 @@
-# Stratton
+# Riri
 
-> Voice AI Sales Agents — with the personality of a real closer.
+> Voice AI sales agents — with the personality of a real closer. *I'm Rocky — but for you.*
 
 Built for the **Agora Hackathon Philippines 2026** in 7 hours by a team of 4 using Cursor / Claude Code / TRAE.
 
-Stratton lets any B2B company spin up a voice AI sales agent with a configurable **persona**. The showcase personas are **Jordan** (high-energy phone closer, Wolf-of-Wall-Street vibes) and **Mike** (calm consultative B2B closer, Suits vibes). Under the hood: Agora Conversational AI Engine for real-time voice (sub-650ms latency, interruption handling), Couchbase Capella for vector-RAG over your product knowledge and prospect intel, and OpenAI as the LLM brain.
+Riri lets any B2B company spin up a voice AI sales agent with a configurable **persona**. The showcase personas are **Jordan** (high-energy phone closer, Wolf-of-Wall-Street vibes) and **Mike** (calm consultative B2B closer, Suits vibes). Under the hood: Agora Conversational AI Engine for real-time voice (sub-650ms latency, interruption handling), Couchbase Capella for vector-RAG over your product knowledge and prospect intel, and OpenAI as the LLM brain.
 
 ## Architecture
 
@@ -28,7 +28,7 @@ Browser (Next.js + Agora Web SDK + Web Toolkit)
 ## Repo Layout
 
 ```
-stratton/
+Riri/
   apps/
     web/         # Next.js 14 dashboard + push-to-talk widget
     api/         # Hono backend - agent control, LLM proxy, ingest, post-call summary
@@ -55,7 +55,7 @@ Copy-Item .env.example .env
 
 # 3. Set up Couchbase
 # - Sign up at https://cloud.couchbase.com (free tier)
-# - Create a cluster, bucket named "stratton"
+# - Create a cluster, bucket named "Riri"
 # - Create vector search index per infra/couchbase-vector-index.md
 
 # 4. Seed the demo data (pre-ingest company + prospect)

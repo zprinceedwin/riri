@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
-import type { Persona, PersonaId } from "@stratton/shared";
+import type { Persona, PersonaId } from "@riri/shared";
 
 export function PersonaSwitcher({
   personas,

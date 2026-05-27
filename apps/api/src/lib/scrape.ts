@@ -8,7 +8,7 @@ export async function scrapeUrlToText(url: string): Promise<{ title: string; tex
   const res = await fetch(url, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (compatible; StrattonBot/0.1; +https://stratton.ai/bot)",
+        "Mozilla/5.0 (compatible; RiriBot/0.1; +https://Riri.ai/bot)",
       Accept: "text/html,application/xhtml+xml",
     },
   });

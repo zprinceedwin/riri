@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { CallSummary } from "@stratton/shared";
+import type { CallSummary } from "@riri/shared";
 import { BrandMark } from "@/components/Brand";
 import { cn } from "@/lib/cn";
 import { summarizeCall } from "@/lib/api";

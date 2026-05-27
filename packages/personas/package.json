@@ -1,5 +1,5 @@
 {
-  "name": "@stratton/personas",
+  "name": "@riri/personas",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@stratton/shared": "workspace:*"
+    "@riri/shared": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.5.4"

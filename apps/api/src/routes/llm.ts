@@ -1,5 +1,5 @@
 /**
- * Custom LLM Proxy -- the heart of Stratton.
+ * Custom LLM Proxy -- the heart of Riri.
  *
  * Agora's Conversational AI Engine calls this URL as its `llm.url`. The contract
  * is OpenAI's /v1/chat/completions (streaming SSE).
@@ -11,7 +11,7 @@
  *   4. Forward the (augmented) request to OpenAI with streaming enabled
  *   5. Stream the SSE response straight back to Agora
  *
- * Custom context (which call, which prospect) flows through the `params.stratton_context`
+ * Custom context (which call, which prospect) flows through the `params.riri_context`
  * field we configured in startConvoAgent. Agora passes it back to us on every call.
  */
 import { Hono } from "hono";
@@ -36,7 +36,7 @@ interface AgoraLlmRequest {
   temperature?: number;
   max_tokens?: number;
   // Custom passthrough we added in lib/agora.ts:
-  stratton_context?: {
+  riri_context?: {
     callId?: string;
     personaId?: string;
     namespace?: string;
@@ -44,7 +44,7 @@ interface AgoraLlmRequest {
   };
   // Sometimes Agora nests it under `context`
   context?: {
-    stratton_context?: AgoraLlmRequest["stratton_context"];
+    riri_context?: AgoraLlmRequest["riri_context"];
   };
 }
 
@@ -52,14 +52,14 @@ llmRoutes.post("/chat/completions", async (c) => {
   const env = getEnv();
   const body = (await c.req.json()) as AgoraLlmRequest;
 
-  // Resolve stratton context from either the top-level passthrough or Agora's
+  // Resolve Riri context from either the top-level passthrough or Agora's
   // generic context wrapper.
-  const strattonCtx =
-    body.stratton_context ?? body.context?.stratton_context ?? {};
+  const RiriCtx =
+    body.riri_context ?? body.context?.riri_context ?? {};
 
   const namespace =
-    strattonCtx.namespace ??
-    (strattonCtx.callId ? getSessionByCall(strattonCtx.callId)?.namespace : undefined) ??
+    RiriCtx.namespace ??
+    (RiriCtx.callId ? getSessionByCall(RiriCtx.callId)?.namespace : undefined) ??
     "default";
 
   const lastUserMsg = [...body.messages].reverse().find((m) => m.role === "user");
@@ -73,8 +73,8 @@ llmRoutes.post("/chat/completions", async (c) => {
       contextBlock = formatContextBlock(chunks);
 
       // Persist the retrieved sources for the post-call summary panel.
-      if (strattonCtx.callId && chunks.length > 0) {
-        const session = getSessionByCall(strattonCtx.callId);
+      if (RiriCtx.callId && chunks.length > 0) {
+        const session = getSessionByCall(RiriCtx.callId);
         if (session) {
           // Stash citations on the session object for UI display.
           (session as { lastCitations?: string[] }).lastCitations = chunks

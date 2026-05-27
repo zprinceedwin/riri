@@ -1,4 +1,4 @@
-import { type Persona, PersonaSchema, type PersonaId } from "@stratton/shared";
+import { type Persona, PersonaSchema, type PersonaId } from "@riri/shared";
 import jordanJson from "../jordan.json" with { type: "json" };
 import mikeJson from "../mike.json" with { type: "json" };
 

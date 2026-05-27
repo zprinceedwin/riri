@@ -26,7 +26,7 @@ Recent public signals:
 - Sara's LinkedIn: "We're investing heavily in real-time AI for fraud. The next 18 months are about consolidation, not sprawl."
 - CTO interview on Asia FinTech podcast, April 2026: "Our biggest pain isn't ML quality -- it's keeping our transactional data and our vector store in sync without paging the on-call team at 3 AM."
 
-Why this is a hot prospect for Stratton/Couchbase:
+Why this is a hot prospect for Riri/Couchbase:
 - Already feeling the pain of MongoDB Atlas + Pinecone sprawl
 - Sara has positive Couchbase priors from Grab
 - Funded, growing, and explicitly looking to consolidate

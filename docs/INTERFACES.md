@@ -1,4 +1,4 @@
-# Stratton API Contracts
+# Riri API Contracts
 
 All shapes are defined in [packages/shared/src/index.ts](../packages/shared/src/index.ts) as Zod schemas. **Change them there first**, never invent endpoints ad-hoc.
 
@@ -16,8 +16,8 @@ Response:
 ```json
 {
   "agentId": "agora-internal-id",
-  "callId": "stratton-call-id",
-  "channel": "stratton-xxxxxxxx",
+  "callId": "Riri-call-id",
+  "channel": "Riri-xxxxxxxx",
   "rtcToken": "<token>",
   "uid": 1002,
   "personaId": "jordan",
@@ -37,10 +37,10 @@ Response: `{ "ok": true, "callId": "..." }`
 ### `POST /v1/chat/completions`
 OpenAI-compatible. Agora hits this every conversational turn. Our proxy retrieves top-k chunks from Couchbase based on the latest user message, injects a CONTEXT block into the system message, and streams the augmented completion back from OpenAI.
 
-The proxy reads `stratton_context` from either the top-level request or `request.context.stratton_context`. We set it when starting the agent (`lib/agora.ts`). Shape:
+The proxy reads `riri_context` from either the top-level request or `request.context.riri_context`. We set it when starting the agent (`lib/agora.ts`). Shape:
 
 ```ts
-type StrattonContext = {
+type RiriContext = {
   callId: string;
   personaId: "jordan" | "mike";
   namespace: string;        // "default" or "prospect:<id>"

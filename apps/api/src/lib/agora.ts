@@ -12,7 +12,7 @@
  */
 import { RtcTokenBuilder, RtcRole } from "agora-token";
 import { getEnv } from "../env.js";
-import { AGORA_DEFAULTS, type Persona } from "@stratton/shared";
+import { AGORA_DEFAULTS, type Persona } from "@riri/shared";
 
 function basicAuth(): string {
   const env = getEnv();
@@ -64,7 +64,7 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
   const tts = buildTtsConfig(params.persona);
 
   const body = {
-    name: `stratton-${params.llmContext.callId}`,
+    name: `Riri-${params.llmContext.callId}`,
     properties: {
       channel: params.channel,
       token: params.agentRtcToken,
@@ -84,7 +84,7 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
         url: env.LLM_PROXY_URL,
         // We don't pass an API key because the proxy is ours -- but Agora still
         // forwards the header to our endpoint, so set anything non-empty.
-        api_key: "stratton-internal",
+        api_key: "Riri-internal",
         system_messages: [
           {
             role: "system",
@@ -97,7 +97,7 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
         params: {
           model: env.OPENAI_LLM_MODEL,
           // We pass our context as an OpenAI passthrough field. Our proxy reads it.
-          stratton_context: params.llmContext,
+          riri_context: params.llmContext,
         },
       },
       asr: {

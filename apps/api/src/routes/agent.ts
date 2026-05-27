@@ -20,8 +20,8 @@ import {
   StopAgentRequestSchema,
   type StartAgentResponse,
   type StopAgentResponse,
-} from "@stratton/shared";
-import { getPersona } from "@stratton/personas";
+} from "@riri/shared";
+import { getPersona } from "@riri/personas";
 import { getEnv } from "../env.js";
 import { buildRtcToken, startConvoAgent, stopConvoAgent } from "../lib/agora.js";
 import { registerSession, unregisterAgent, getSessionByAgent } from "../lib/store.js";
@@ -39,7 +39,7 @@ agentRoutes.post("/start", async (c) => {
   const env = getEnv();
 
   const persona = getPersona(personaId);
-  const channel = parsed.data.channel ?? `stratton-${nanoid(8)}`;
+  const channel = parsed.data.channel ?? `Riri-${nanoid(8)}`;
   const callId = nanoid(12);
 
   // Two distinct UIDs: agent uses 1001, human user uses 1002.

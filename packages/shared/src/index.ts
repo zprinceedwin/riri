@@ -1,5 +1,5 @@
 /**
- * Stratton Shared Contracts
+ * Riri Shared Contracts
  * ---------------------------------------------------------------
  * Frozen at hour 0. Every app imports types from here.
  * No one invents endpoints ad-hoc. If you need to change a shape,

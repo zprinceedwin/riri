@@ -2,9 +2,9 @@
  * Couchbase Capella client + vector search helpers.
  *
  * Setup (one-time, in Capella UI):
- *   1. Create bucket `stratton`
+ *   1. Create bucket `Riri`
  *   2. Default scope, create two collections: `knowledge` and `calls`
- *   3. Create a Search index named `stratton_vector_idx` with the JSON shown in
+ *   3. Create a Search index named `riri_vector_idx` with the JSON shown in
  *      infra/couchbase-vector-index.md (vector field: `embedding`, dim 1536).
  *
  * Connection is lazy -- the API server starts even if Capella creds are missing,
@@ -21,7 +21,7 @@ import {
   connect,
 } from "couchbase";
 import { getEnv } from "../env.js";
-import type { IngestKind, RagChunk } from "@stratton/shared";
+import type { IngestKind, RagChunk } from "@riri/shared";
 
 let clusterCache: Cluster | null = null;
 let bucketCache: Bucket | null = null;

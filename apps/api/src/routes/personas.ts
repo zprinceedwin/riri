@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { getPersona, listPersonas } from "@stratton/personas";
-import type { PersonaId } from "@stratton/shared";
+import { getPersona, listPersonas } from "@riri/personas";
+import type { PersonaId } from "@riri/shared";
 
 export const personaRoutes = new Hono();
 

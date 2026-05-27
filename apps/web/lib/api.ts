@@ -1,6 +1,6 @@
 /**
- * Tiny typed client for the Stratton API. The interface contracts live in
- * @stratton/shared so the FE and BE never drift.
+ * Tiny typed client for the Riri API. The interface contracts live in
+ * @riri/shared so the FE and BE never drift.
  */
 import {
   ROUTE,
@@ -11,7 +11,7 @@ import {
   type StopAgentRequest,
   type StopAgentResponse,
   type CallSummary,
-} from "@stratton/shared";
+} from "@riri/shared";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ??

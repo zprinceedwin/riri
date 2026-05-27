@@ -14,10 +14,10 @@ This is the script. Memorize the beats. The whole build serves this arc.
 
 ## 0:00 — Hook (30 seconds)
 
-> "Quick show of hands — who's seen Wolf of Wall Street?
-> Right. Okay. Today, Jordan Belfort works for you.
-> We built an AI sales agent platform where you don't just get a voice bot — you get a closer with personality. A real one. With photographic memory of your product and your prospect.
-> His name is Jordan. He's been preparing for this call."
+> "Quick show of hands — who's seen Rocky?
+> I'm Rocky — but for you. That's Riri.
+> We built a voice AI sales platform where you don't just get a bot — you get a closer with personality. Photographic memory of your product and your prospect.
+> Today Jordan's on the line. He's been preparing for this call."
 
 ## 0:30 — Frame the ingest (30 seconds)
 
@@ -66,7 +66,7 @@ End the call. Navigate to summary:
 
 ## 4:45 — The frame (45 seconds)
 
-> "Stratton: voice AI sales agents — with the personality of a real closer.
+> "Riri — I'm Rocky, but for you. Voice AI sales agents with the personality of a real closer.
 > Built on Agora Conversational AI for sub-650-millisecond voice. Couchbase Capella for the brain — vector RAG over your product knowledge and your prospect intel. Shipped in 7 hours by 4 engineers using TRAE and Cursor.
 > We're not building another chatbot. We're hiring closers.
 > Thank you."

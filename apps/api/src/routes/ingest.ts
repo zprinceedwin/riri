@@ -12,7 +12,7 @@ import {
   IngestProspectRequestSchema,
   type IngestResponse,
   type IngestProspectResponse,
-} from "@stratton/shared";
+} from "@riri/shared";
 import { scrapeUrlToText } from "../lib/scrape.js";
 import { chunkText } from "../lib/chunk.js";
 import { embedBatch } from "../lib/openai.js";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PersonaId } from "@stratton/shared";
+import type { PersonaId } from "@riri/shared";
 import { cn } from "@/lib/cn";
 import { joinCall, type AgentState, type CallHandle, type TranscriptTurn } from "@/lib/agora";
 import { startAgent, stopAgent } from "@/lib/api";
