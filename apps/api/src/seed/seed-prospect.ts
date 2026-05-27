@@ -8,8 +8,8 @@
  * Outputs the generated prospectId you can paste into the dashboard, or copy
  * into apps/web/lib/api.ts as DEMO_PROSPECT_ID for the demo.
  */
-import { embedBatch } from "../lib/openai.js";
-import { upsertChunks, type StoredChunk } from "../lib/couchbase.js";
+import { embedBatch } from "../lib/voyage.js";
+import { upsertChunks, type StoredChunk } from "../lib/supabase.js";
 import { chunkText } from "../lib/chunk.js";
 import { nanoid } from "nanoid";
 

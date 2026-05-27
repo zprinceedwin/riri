@@ -3,9 +3,9 @@
  *   GET  /api/slots?from=ISO&to=ISO&doctorId=optional   -- list slots in window
  *   POST /api/slots/reserve                              -- CAS-based 5min hold
  *
- * Reservation uses a Couchbase CAS replace so two simultaneous reservations
+ * Reservation uses an atomic Postgres UPDATE WHERE so two simultaneous reservations
  * for the same slot are guaranteed to have exactly one winner. See
- * `reserveSlot` in lib/couchbase.ts for the details of the locking protocol.
+ * `reserveSlot` in lib/supabase.ts for the details of the locking protocol.
  */
 import { Hono } from "hono";
 import {
@@ -13,7 +13,7 @@ import {
   type ReserveSlotResponse,
   type ListSlotsResponse,
 } from "@riri/shared";
-import { listSlotsBetween, reserveSlot } from "../lib/couchbase.js";
+import { listSlotsBetween, reserveSlot } from "../lib/supabase.js";
 
 export const slotRoutes = new Hono();
 

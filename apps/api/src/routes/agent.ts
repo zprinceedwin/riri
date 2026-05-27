@@ -25,7 +25,7 @@ import { getPersona } from "@riri/personas";
 import { getEnv } from "../env.js";
 import { buildRtcToken, startConvoAgent, stopConvoAgent, queryAgentStatus } from "../lib/agora.js";
 import { registerSession, unregisterAgent, getSessionByAgent, getAllSessions } from "../lib/store.js";
-import { getContactByPhone, upsertCall } from "../lib/couchbase.js";
+import { getContactByPhone, upsertCall } from "../lib/supabase.js";
 
 export const agentRoutes = new Hono();
 

@@ -30,7 +30,7 @@ import {
   getContactByPhone,
   listBookings,
   upsertContact,
-} from "../lib/couchbase.js";
+} from "../lib/supabase.js";
 import { sendBookingConfirmation } from "../lib/resend.js";
 import { getDoctor, getService } from "../lib/clinic-catalog.js";
 

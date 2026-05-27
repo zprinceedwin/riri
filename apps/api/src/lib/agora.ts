@@ -10,7 +10,10 @@
  *  - The agent calls our own /v1/chat/completions as its LLM (via llm.url field)
  *  - We enable RTM data channel so the Web Toolkit can stream transcripts
  */
-import { RtcTokenBuilder, RtcRole } from "agora-token";
+// `agora-token` is a CommonJS package; Node's ESM named-export detection
+// misses some keys, so default-import the whole object and destructure.
+import pkg from "agora-token";
+const { RtcTokenBuilder, RtcRole } = pkg;
 import { getEnv } from "../env.js";
 import { AGORA_DEFAULTS, type Persona } from "@riri/shared";
 
@@ -139,7 +142,7 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
           },
         ],
         greeting_message: greetingMessage,
-        greeting_config: {
+        greeting_configs: {
           mode: "single_every",
           delay_ms: 800,
           interruptable: true,

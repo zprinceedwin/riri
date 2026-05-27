@@ -30,6 +30,7 @@ import { bookingRoutes } from "./routes/bookings.js";
 import { contactRoutes } from "./routes/contacts.js";
 import { handoffRoutes } from "./routes/handoffs.js";
 import { catalogRoutes } from "./routes/catalog.js";
+import { mcpRoutes } from "./routes/mcp.js";
 
 const app = new Hono();
 
@@ -78,6 +79,7 @@ app.route("/api/contacts", contactRoutes);
 app.route("/api/handoffs", handoffRoutes);
 app.route("/api", catalogRoutes);
 app.route("/v1", llmRoutes);
+app.route("/mcp", mcpRoutes);
 
 app.onError((err, c) => {
   console.error("[api] unhandled error:", err);
@@ -95,9 +97,10 @@ const port = (() => {
 serve({ fetch: app.fetch, port }, (info) => {
   console.log(`Riri API listening on http://localhost:${info.port}`);
   console.log(`  health:       http://localhost:${info.port}/health`);
-  console.log(`  llm proxy:    http://localhost:${info.port}/v1/chat/completions`);
+  console.log(`  mcp server:   POST http://localhost:${info.port}/mcp  (Agora Studio integration)`);
+  console.log(`  llm proxy:    http://localhost:${info.port}/v1/chat/completions  (legacy, used only if not on Studio path)`);
   console.log(`  agent start:  POST http://localhost:${info.port}/api/agent/start`);
   console.log(`  clinic slots: GET  http://localhost:${info.port}/api/slots`);
   console.log("");
-  console.log("Reminder: expose this with cloudflared/ngrok so Agora can reach /v1/chat/completions");
+  console.log("Reminder: expose this with cloudflared/ngrok so Agora Studio can reach /mcp");
 });

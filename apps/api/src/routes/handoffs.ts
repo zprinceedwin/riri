@@ -20,7 +20,7 @@ import {
   createHandoff,
   getHandoff,
   listPendingHandoffs,
-} from "../lib/couchbase.js";
+} from "../lib/supabase.js";
 
 export const handoffRoutes = new Hono();
 

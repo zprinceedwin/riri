@@ -35,7 +35,7 @@ import {
   getCall,
   upsertCall,
   type StoredCall,
-} from "../lib/couchbase.js";
+} from "../lib/supabase.js";
 import { getSessionByCall } from "../lib/store.js";
 
 export const callRoutes = new Hono();

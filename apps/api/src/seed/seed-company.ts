@@ -9,8 +9,8 @@
  *   pnpm seed:company                       # default: Couchbase
  *   COMPANY=acme pnpm seed:company          # swap to another seeded company
  */
-import { embedBatch } from "../lib/openai.js";
-import { upsertChunks, type StoredChunk } from "../lib/couchbase.js";
+import { embedBatch } from "../lib/voyage.js";
+import { upsertChunks, type StoredChunk } from "../lib/supabase.js";
 import { chunkText } from "../lib/chunk.js";
 import { nanoid } from "nanoid";
 

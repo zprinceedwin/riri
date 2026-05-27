@@ -22,7 +22,7 @@ import { getEnv } from "../env.js";
 import { getOpenAI } from "../lib/openai.js";
 import { formatContextBlock, retrieve } from "../lib/rag.js";
 import { getSessionByCall } from "../lib/store.js";
-import { listSlotsBetween } from "../lib/couchbase.js";
+import { listSlotsBetween } from "../lib/supabase.js";
 import { getDoctor } from "../lib/clinic-catalog.js";
 import type { Slot } from "@riri/shared";
 
