@@ -8,6 +8,7 @@ import AgoraRTC, {
 
 if (typeof window !== "undefined") {
   AgoraRTC.setLogLevel(3);
+  // @ts-expect-error — setParameter exists at runtime but is missing from SDK type defs
   AgoraRTC.setParameter("ENABLE_AUDIO_PTS_METADATA", true);
 }
 
@@ -159,7 +160,9 @@ export async function joinCall(opts: JoinCallOptions): Promise<CallHandle> {
       try {
         const enc = new TextEncoder();
         const payload = enc.encode(JSON.stringify({ object: "user.interrupt", ts: Date.now() }));
+        // @ts-expect-error — createDataStream/sendStreamMessage exist at runtime but are missing from SDK type defs
         const streamId = await client.createDataStream({ ordered: true, reliable: true });
+        // @ts-expect-error — see above
         client.sendStreamMessage(streamId, payload);
       } catch (err) {
         console.warn("interrupt failed", err);
