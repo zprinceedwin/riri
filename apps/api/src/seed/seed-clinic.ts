@@ -17,14 +17,14 @@
  * Idempotent at the document-id level -- re-running upserts the same ids.
  */
 import { nanoid } from "nanoid";
-import { embedBatch } from "../lib/openai.js";
+import { embedBatch } from "../lib/voyage.js";
 import {
   upsertBooking,
   upsertChunks,
   upsertContact,
   upsertSlot,
   type StoredChunk,
-} from "../lib/couchbase.js";
+} from "../lib/supabase.js";
 import { chunkText } from "../lib/chunk.js";
 import { DOCTORS, SERVICES } from "../lib/clinic-catalog.js";
 import { getEnv } from "../env.js";
@@ -116,29 +116,50 @@ function buildKnowledgeDocs(): SeedDoc[] {
 
 async function seedKnowledge(namespace: string): Promise<number> {
   const docs = buildKnowledgeDocs();
-  let total = 0;
+  // Collect every chunk across every doc into one flat list so we embed them
+  // all in a single Voyage API call. The free tier limits us to 3 requests
+  // per minute; chunking ~30 doc-chunks into one batched request keeps us
+  // comfortably within that.
+  type PendingChunk = {
+    id: string;
+    text: string;
+    source: string;
+    title: string;
+  };
+  const pending: PendingChunk[] = [];
   for (const doc of docs) {
     const chunks = chunkText(doc.text);
     if (chunks.length === 0) continue;
-    const embeddings = await embedBatch(chunks);
     const docId = nanoid(8);
-    const items = chunks.map((text, i) => ({
-      id: `seed-clinic-${docId}-${i}`,
-      chunk: {
+    chunks.forEach((text, i) =>
+      pending.push({
+        id: `seed-clinic-${docId}-${i}`,
         text,
-        embedding: embeddings[i]!,
-        kind: "clinic" as const,
-        namespace,
         source: doc.source,
         title: doc.title,
-        createdAt: Date.now(),
-      } satisfies StoredChunk,
-    }));
-    await upsertChunks(items);
-    total += items.length;
-    console.log(`  + KB: ${doc.title} -- ${items.length} chunks`);
+      })
+    );
   }
-  return total;
+  if (pending.length === 0) return 0;
+
+  console.log(`  embedding ${pending.length} chunks in one batched call...`);
+  const embeddings = await embedBatch(pending.map((p) => p.text));
+
+  const items = pending.map((p, i) => ({
+    id: p.id,
+    chunk: {
+      text: p.text,
+      embedding: embeddings[i]!,
+      kind: "clinic" as const,
+      namespace,
+      source: p.source,
+      title: p.title,
+      createdAt: Date.now(),
+    } satisfies StoredChunk,
+  }));
+  await upsertChunks(items);
+  console.log(`  + KB: ${items.length} chunks across ${docs.length} docs`);
+  return items.length;
 }
 
 interface SlotPlan {

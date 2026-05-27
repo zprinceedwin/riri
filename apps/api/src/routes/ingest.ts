@@ -15,8 +15,8 @@ import {
 } from "@riri/shared";
 import { scrapeUrlToText } from "../lib/scrape.js";
 import { chunkText } from "../lib/chunk.js";
-import { embedBatch } from "../lib/openai.js";
-import { upsertChunks, type StoredChunk } from "../lib/couchbase.js";
+import { embedBatch } from "../lib/voyage.js";
+import { upsertChunks, type StoredChunk } from "../lib/supabase.js";
 
 export const ingestRoutes = new Hono();
 

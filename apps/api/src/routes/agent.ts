@@ -23,9 +23,9 @@ import {
 } from "@riri/shared";
 import { getPersona } from "@riri/personas";
 import { getEnv } from "../env.js";
-import { buildRtcToken, startConvoAgent, stopConvoAgent } from "../lib/agora.js";
-import { registerSession, unregisterAgent, getSessionByAgent } from "../lib/store.js";
-import { getContactByPhone, upsertCall } from "../lib/couchbase.js";
+import { buildRtcToken, startConvoAgent, stopConvoAgent, queryAgentStatus } from "../lib/agora.js";
+import { registerSession, unregisterAgent, getSessionByAgent, getAllSessions } from "../lib/store.js";
+import { getContactByPhone, upsertCall } from "../lib/supabase.js";
 
 export const agentRoutes = new Hono();
 
@@ -168,4 +168,37 @@ agentRoutes.post("/stop", async (c) => {
     callId: parsed.data.callId ?? session?.callId ?? "unknown",
   };
   return c.json(res);
+});
+
+agentRoutes.get("/status/:agentId", async (c) => {
+  const agentId = c.req.param("agentId");
+  try {
+    const status = await queryAgentStatus(agentId);
+    const session = getSessionByAgent(agentId);
+    return c.json({
+      ...status,
+      callId: session?.callId,
+      channel: session?.channel,
+      personaId: session?.personaId,
+      startedAt: session?.startedAt,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "unknown error";
+    return c.json({ error: "agent_query_failed", detail: msg }, 502);
+  }
+});
+
+agentRoutes.get("/sessions", async (c) => {
+  const sessions = getAllSessions();
+  return c.json({
+    count: sessions.length,
+    sessions: sessions.map((s) => ({
+      callId: s.callId,
+      agentId: s.agentId,
+      channel: s.channel,
+      personaId: s.personaId,
+      startedAt: s.startedAt,
+      ageMs: Date.now() - s.startedAt,
+    })),
+  });
 });

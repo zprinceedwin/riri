@@ -7,11 +7,17 @@ const EnvSchema = z.object({
   AGORA_CUSTOMER_ID: z.string().min(1),
   AGORA_CUSTOMER_SECRET: z.string().min(1),
 
-  // OpenAI
+  // OpenAI (kept for the post-call summarizer until we swap that too; not used
+  // for embeddings any more -- Voyage handles those.)
   OPENAI_API_KEY: z.string().min(1),
   OPENAI_LLM_MODEL: z.string().default("gpt-4o-mini"),
   OPENAI_SUMMARY_MODEL: z.string().default("gpt-4o"),
   OPENAI_EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
+
+  // Voyage AI (embeddings for RAG)
+  VOYAGE_API_KEY: z.string().min(1),
+  VOYAGE_EMBEDDING_MODEL: z.string().default("voyage-3-large"),
+  VOYAGE_EMBEDDING_DIMENSIONS: z.coerce.number().int().positive().default(1024),
 
   // ElevenLabs
   ELEVENLABS_API_KEY: z.string().min(1),
@@ -28,19 +34,10 @@ const EnvSchema = z.object({
     .string()
     .default("Riri Clinic <onboarding@resend.dev>"),
 
-  // Couchbase
-  COUCHBASE_CONNECTION_STRING: z.string().min(1),
-  COUCHBASE_USERNAME: z.string().min(1),
-  COUCHBASE_PASSWORD: z.string().min(1),
-  COUCHBASE_BUCKET: z.string().default("Riri"),
-  COUCHBASE_SCOPE: z.string().default("_default"),
-  COUCHBASE_COLLECTION_KNOWLEDGE: z.string().default("knowledge"),
-  COUCHBASE_COLLECTION_CALLS: z.string().default("calls"),
-  COUCHBASE_COLLECTION_SLOTS: z.string().default("slots"),
-  COUCHBASE_COLLECTION_CONTACTS: z.string().default("contacts"),
-  COUCHBASE_COLLECTION_BOOKINGS: z.string().default("bookings"),
-  COUCHBASE_COLLECTION_HANDOFFS: z.string().default("handoffs"),
-  COUCHBASE_VECTOR_INDEX: z.string().default("riri_vector_idx"),
+  // Supabase
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  SUPABASE_EMBEDDING_DIMENSIONS: z.coerce.number().int().positive().default(1536),
 
   // Clinic identity
   CLINIC_NAME: z.string().default("Belle Aesthetic Manila"),

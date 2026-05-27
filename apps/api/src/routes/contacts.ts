@@ -8,7 +8,7 @@ import type {
   GetContactByPhoneResponse,
   ListContactsResponse,
 } from "@riri/shared";
-import { getContactByPhone, listContacts } from "../lib/couchbase.js";
+import { getContactByPhone, listContacts } from "../lib/supabase.js";
 
 export const contactRoutes = new Hono();
 
