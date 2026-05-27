@@ -4,14 +4,14 @@
  *   POST /api/agent/stop   -- stop the agent and free the channel
  *
  * The flow is:
- *   1. Browser hits /api/agent/start with { personaId, prospectId? }
- *   2. We mint two RTC tokens (one for the agent, one for the human user) for
- *      a fresh channel name.
- *   3. We POST to Agora's /v2/projects/:appid/join to spawn the agent.
- *   4. We register the call in our session store + Couchbase.
- *   5. We return the human's RTC token + channel + agentId + callId to the browser.
- *   6. The browser joins the channel with the Agora Web SDK and the agent is
- *      already there.
+ *   1. Browser hits /api/agent/start with { personaId, prospectId?, phone? }
+ *   2. If a phone is supplied, we look up the known contact in Couchbase and
+ *      inject a `knownContact` snippet into the llm context so Sofia greets
+ *      them by name with their last visit.
+ *   3. We mint two RTC tokens (agent + human) for a fresh channel.
+ *   4. We POST to Agora's /v2/projects/:appid/join to spawn the agent.
+ *   5. We register the call in our session store + Couchbase.
+ *   6. We return the human's RTC token + channel + agentId + callId.
  */
 import { Hono } from "hono";
 import { nanoid } from "nanoid";
@@ -25,7 +25,7 @@ import { getPersona } from "@riri/personas";
 import { getEnv } from "../env.js";
 import { buildRtcToken, startConvoAgent, stopConvoAgent } from "../lib/agora.js";
 import { registerSession, unregisterAgent, getSessionByAgent } from "../lib/store.js";
-import { upsertCall } from "../lib/couchbase.js";
+import { getContactByPhone, upsertCall } from "../lib/couchbase.js";
 
 export const agentRoutes = new Hono();
 
@@ -35,7 +35,7 @@ agentRoutes.post("/start", async (c) => {
   if (!parsed.success) {
     return c.json({ error: "invalid_request", detail: parsed.error.message }, 400);
   }
-  const { personaId, prospectId } = parsed.data;
+  const { personaId, prospectId, phone } = parsed.data;
   const env = getEnv();
 
   const persona = getPersona(personaId);
@@ -49,9 +49,37 @@ agentRoutes.post("/start", async (c) => {
   const agentRtcToken = buildRtcToken(channel, agentUid, 3600);
   const humanRtcToken = buildRtcToken(channel, remoteUid, 3600);
 
-  // Namespace for RAG lookups -- 'default' uses all seeded company knowledge.
-  // If a prospect is attached, we still let the LLM see company + prospect data.
-  const namespace = prospectId ? `prospect:${prospectId}` : "default";
+  // Sofia (clinic) lives in its own RAG namespace so the receptionist never
+  // sees Voltline/Couchbase B2B docs. Jordan/Mike keep using prospect:* or
+  // default namespaces as before.
+  let namespace: string;
+  if (personaId === "sofia") {
+    namespace = env.CLINIC_DEMO_NAMESPACE;
+  } else if (prospectId) {
+    namespace = `prospect:${prospectId}`;
+  } else {
+    namespace = "default";
+  }
+
+  // Known-contact lookup -- only when the FE supplies a phone (e.g. "pre-loaded
+  // prospect" toggle). Sofia uses this to greet returning clients by name. The
+  // lookup is best-effort -- a Couchbase outage must NOT block the call.
+  let knownContact: StartAgentResponse["knownContact"];
+  if (phone) {
+    try {
+      const contact = await getContactByPhone(phone);
+      if (contact) {
+        knownContact = {
+          id: contact.id,
+          name: contact.name,
+          totalCalls: contact.totalCalls,
+          totalBookings: contact.totalBookings,
+        };
+      }
+    } catch (err) {
+      console.warn("[agent.start] contact lookup failed (non-fatal):", err);
+    }
+  }
 
   const started = await startConvoAgent({
     channel,
@@ -64,6 +92,7 @@ agentRoutes.post("/start", async (c) => {
       personaId,
       namespace,
       prospectId,
+      knownContact,
     },
   });
 
@@ -75,11 +104,21 @@ agentRoutes.post("/start", async (c) => {
     namespace,
     prospectId,
     startedAt: Date.now(),
+    knownContact,
   };
   registerSession(session);
 
   // Best-effort persistence to Couchbase. Don't block the call if it fails.
-  upsertCall({ ...session }).catch((err) => {
+  upsertCall({
+    callId,
+    agentId: started.agentId,
+    personaId,
+    channel,
+    namespace,
+    prospectId,
+    startedAt: session.startedAt,
+    contactId: knownContact?.id,
+  }).catch((err) => {
     console.error("[agent.start] Couchbase upsertCall failed (non-fatal):", err.message);
   });
 
@@ -91,6 +130,7 @@ agentRoutes.post("/start", async (c) => {
     uid: remoteUid,
     personaId,
     appId: env.AGORA_APP_ID,
+    knownContact,
   };
   return c.json(res);
 });
@@ -108,7 +148,16 @@ agentRoutes.post("/stop", async (c) => {
   unregisterAgent(agentId);
 
   if (session) {
-    const ended = { ...session, endedAt: Date.now() };
+    const ended = {
+      callId: session.callId,
+      agentId: session.agentId,
+      personaId: session.personaId,
+      channel: session.channel,
+      namespace: session.namespace,
+      prospectId: session.prospectId,
+      startedAt: session.startedAt,
+      endedAt: Date.now(),
+    };
     upsertCall(ended).catch((err) => {
       console.error("[agent.stop] Couchbase upsertCall failed (non-fatal):", err.message);
     });

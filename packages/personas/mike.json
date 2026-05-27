@@ -1,7 +1,7 @@
 {
   "id": "mike",
   "displayName": "Mike",
-  "shortDescription": "Consultative enterprise closer. Calm, articulate, photographic memory. Built for high-ACV B2B and technical buyers.",
+  "shortDescription": "Alternative persona: consultative enterprise closer. Calm, articulate, photographic memory. Built for high-ACV B2B — kept in the codebase to demo the persona engine.",
   "avatarEmoji": "🧠",
   "voice": {
     "provider": "elevenlabs",

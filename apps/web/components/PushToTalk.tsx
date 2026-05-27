@@ -11,6 +11,8 @@ export type CallStatus = "idle" | "connecting" | "live" | "ending" | "error";
 export interface PushToTalkProps {
   personaId: PersonaId;
   prospectId?: string;
+  /** Optional caller phone for contact lookup (used by Sofia for warm greetings). */
+  phone?: string;
   onTranscript: (t: TranscriptTurn) => void;
   onAgentState: (s: AgentState) => void;
   onStatusChange: (s: CallStatus) => void;
@@ -36,6 +38,7 @@ export function PushToTalk(props: PushToTalkProps) {
       const session = await startAgent({
         personaId: props.personaId,
         prospectId: props.prospectId,
+        phone: props.phone,
       });
 
       const handle = await joinCall({

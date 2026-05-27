@@ -46,6 +46,12 @@ export interface StartAgentParams {
     personaId: string;
     namespace: string;
     prospectId?: string;
+    knownContact?: {
+      id: string;
+      name?: string;
+      totalCalls: number;
+      totalBookings: number;
+    };
   };
 }
 
@@ -62,6 +68,12 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
   const url = `${AGORA_API_BASE}/projects/${env.AGORA_APP_ID}/join`;
 
   const tts = buildTtsConfig(params.persona);
+
+  // Pre-warm the greeting when we know the caller (Sofia returning-client flow).
+  const known = params.llmContext.knownContact;
+  const greetingMessage = known?.name
+    ? `Hi ${firstName(known.name)}, welcome back to Belle Aesthetic Manila — this is Sofia. What can I help you with today?`
+    : params.persona.greetingMessage;
 
   const body = {
     name: `Riri-${params.llmContext.callId}`,
@@ -91,7 +103,7 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
             content: params.persona.systemPrompt,
           },
         ],
-        greeting_message: params.persona.greetingMessage,
+        greeting_message: greetingMessage,
         failure_message: "Sorry, I missed that -- could you say it again?",
         max_history: 12,
         params: {
@@ -152,15 +164,25 @@ export async function stopConvoAgent(agentId: string): Promise<void> {
   }
 }
 
+function firstName(full: string): string {
+  return full.split(" ")[0] ?? full;
+}
+
 function buildTtsConfig(persona: Persona) {
   const env = getEnv();
   // Resolve voice id from env so we don't bake keys into the persona JSON.
-  const voiceId =
-    persona.id === "jordan"
-      ? env.ELEVENLABS_VOICE_ID_JORDAN
-      : persona.id === "mike"
-        ? env.ELEVENLABS_VOICE_ID_MIKE
-        : persona.voice.voiceId;
+  const voiceId = (() => {
+    switch (persona.id) {
+      case "jordan":
+        return env.ELEVENLABS_VOICE_ID_JORDAN;
+      case "mike":
+        return env.ELEVENLABS_VOICE_ID_MIKE;
+      case "sofia":
+        return env.ELEVENLABS_VOICE_ID_SOFIA;
+      default:
+        return persona.voice.voiceId;
+    }
+  })();
 
   return {
     vendor: "elevenlabs",

@@ -9,20 +9,28 @@ import { TranscriptPanel, type TranscriptItem } from "@/components/TranscriptPan
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
 import { SourcesPanel, type CitedSource } from "@/components/SourcesPanel";
 import { PushToTalk, type CallStatus } from "@/components/PushToTalk";
+import { CalendarGrid } from "@/components/CalendarGrid";
+import { PipelineBoard } from "@/components/PipelineBoard";
+import { StatsStrip } from "@/components/StatsStrip";
+import { PendingHandoffPanel } from "@/components/PendingHandoffPanel";
 import { DEMO_PROSPECT_ID, listPersonas, postTranscript } from "@/lib/api";
 import type { AgentState, TranscriptTurn } from "@/lib/agora";
+
+const DEFAULT_PERSONA: PersonaId = "sofia";
+const PRELOADED_DEMO_PHONE = "+63-917-555-0101";
 
 export default function Dashboard() {
   const router = useRouter();
 
   const [personas, setPersonas] = useState<Persona[]>([]);
-  const [personaId, setPersonaId] = useState<PersonaId>("jordan");
+  const [personaId, setPersonaId] = useState<PersonaId>(DEFAULT_PERSONA);
 
   const [turns, setTurns] = useState<TranscriptItem[]>([]);
   const [agentState, setAgentState] = useState<AgentState>("idle");
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [callId, setCallId] = useState<string | null>(null);
   const [sources] = useState<CitedSource[]>([]);
+  const [usePreloadedContact, setUsePreloadedContact] = useState(false);
 
   useEffect(() => {
     listPersonas()
@@ -70,7 +78,6 @@ export default function Dashboard() {
 
   const handleCallEnded = useCallback(
     async ({ callId: endedCallId }: { callId: string }) => {
-      // Ship the final transcript to the backend, then jump to summary.
       const finalTurns = turns
         .filter((t) => !t.partial)
         .map((t) => ({ role: t.role, text: t.text, ts: t.ts }));
@@ -91,11 +98,29 @@ export default function Dashboard() {
     setTurns([]);
   }, []);
 
+  const isLive = callStatus === "live" || callStatus === "connecting";
+  const isClinic = personaId === "sofia";
+  const today = useMemo(() => {
+    return new Date().toLocaleDateString("en-PH", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
+  }, []);
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-6">
+    <main className="mx-auto flex min-h-screen max-w-[1480px] flex-col px-6 py-6">
       {/* Header */}
-      <header className="flex items-center justify-between pb-6">
-        <BrandMark />
+      <header className="flex flex-wrap items-center justify-between gap-3 pb-4">
+        <div className="flex items-center gap-4">
+          <BrandMark />
+          <div className="hidden flex-col leading-none md:flex">
+            <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-500">
+              Today
+            </span>
+            <span className="text-xs font-semibold text-ink-200">{today}</span>
+          </div>
+        </div>
         <div className="flex items-center gap-3">
           <AgentStateBadge state={agentState} />
           <span className="hidden text-[11px] uppercase tracking-[0.18em] text-ink-400 md:inline">
@@ -104,29 +129,22 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="mb-6 flex flex-col items-start gap-2">
-        <span className="pill border-gold-500/30 bg-gold-500/10 text-gold-300">
-          Agora Hackathon Philippines 2026
-        </span>
-        <h1 className="font-display text-3xl font-bold tracking-tight text-ink-50 md:text-4xl">
-          Voice AI sales agents — with the personality of a real closer.
-        </h1>
-        <p className="max-w-2xl text-sm leading-relaxed text-ink-300">
-          Riri hires {activePersona?.displayName ?? "Jordan"} to handle the call. Real-time voice
-          on Agora, photographic memory on Couchbase. Press the button, talk like a prospect, see
-          how Riri works the deal.
-        </p>
+      <section className="mb-4">
+        <StatsStrip pollMs={8000} />
       </section>
 
       {/* Main grid */}
-      <section className="grid flex-1 grid-cols-1 gap-5 lg:grid-cols-[320px_1fr_300px]">
+      <section className="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-[320px_minmax(0,1fr)_300px]">
         {/* Left rail */}
         <aside className="glass-card flex flex-col">
           <div className="border-b border-ink-700/60 px-5 py-4">
-            <h2 className="text-sm font-semibold tracking-tight text-ink-100">Pick your closer</h2>
+            <h2 className="text-sm font-semibold tracking-tight text-ink-100">
+              {isClinic ? "Front desk" : "Pick your closer"}
+            </h2>
             <p className="mt-1 text-xs leading-relaxed text-ink-400">
-              Same product, different soul. Switch the persona to fit the deal.
+              {isClinic
+                ? "Sofia handles inbound for Belle Aesthetic Manila. Switch to Jordan or Mike to demo the persona engine."
+                : "Same product, different soul. Switch the persona to fit the deal."}
             </p>
           </div>
           <div className="p-3">
@@ -139,19 +157,46 @@ export default function Dashboard() {
           </div>
 
           <div className="border-t border-ink-700/60 px-5 py-4">
+            <label className="flex cursor-pointer items-center justify-between gap-3">
+              <div>
+                <div className="text-xs font-semibold text-ink-100">
+                  Pre-loaded caller
+                </div>
+                <div className="mt-0.5 text-[11px] leading-snug text-ink-400">
+                  Treat this call as Maria Cruz — Sofia greets her by name.
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={usePreloadedContact}
+                onChange={(e) => setUsePreloadedContact(e.target.checked)}
+                disabled={callStatus !== "idle" || !isClinic}
+                className="h-4 w-4 accent-gold-500"
+              />
+            </label>
+          </div>
+
+          <div className="border-t border-ink-700/60 px-5 py-4">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-400">
               This call
             </h3>
             <dl className="mt-3 space-y-2 text-xs">
-              <Row label="Prospect" value={DEMO_PROSPECT_ID ? "Pre-loaded" : "Seed-default"} />
-              <Row label="Knowledge" value="Couchbase vector RAG" />
-              <Row label="Voice" value="Agora Convo AI + ElevenLabs" />
+              <Row
+                label="Mode"
+                value={isClinic ? "Inbound clinic concierge" : "Outbound sales"}
+              />
+              <Row
+                label="Knowledge"
+                value={isClinic ? "Couchbase: clinic KB" : "Couchbase vector RAG"}
+              />
+              <Row label="Voice" value="Agora + ElevenLabs + Deepgram" />
             </dl>
           </div>
 
           <PushToTalk
             personaId={personaId}
-            prospectId={DEMO_PROSPECT_ID}
+            prospectId={isClinic ? undefined : DEMO_PROSPECT_ID}
+            phone={usePreloadedContact && isClinic ? PRELOADED_DEMO_PHONE : undefined}
             onTranscript={handleTranscript}
             onAgentState={setAgentState}
             onStatusChange={setCallStatus}
@@ -161,25 +206,41 @@ export default function Dashboard() {
 
           <div className="mt-auto border-t border-ink-700/60 px-5 py-3">
             <p className="text-[10px] leading-relaxed text-ink-500">
-              Built on Agora, Couchbase, ElevenLabs, Deepgram, OpenAI. Shipped in 7 hours with TRAE
-              and Cursor.
+              {activePersona?.displayName ?? "Sofia"} runs on Agora Conversational
+              AI, Couchbase Capella, ElevenLabs, Deepgram, and Resend. Built with
+              TRAE + Cursor + Claude Code.
             </p>
           </div>
         </aside>
 
         {/* Center */}
-        <section className="glass-card overflow-hidden">
-          <TranscriptPanel turns={turns} />
+        <section className="flex min-w-0 flex-col gap-4">
+          <div className="glass-card h-[360px] overflow-hidden">
+            <CalendarGrid active={isLive} pollMs={3000} />
+          </div>
+          <div className="glass-card h-[360px] overflow-hidden">
+            <TranscriptPanel turns={turns} />
+          </div>
         </section>
 
         {/* Right rail */}
-        <aside className="glass-card hidden overflow-hidden lg:block">
-          <SourcesPanel sources={sources} />
+        <aside className="hidden flex-col gap-4 lg:flex">
+          <div className="glass-card h-[360px] overflow-hidden">
+            <SourcesPanel sources={sources} />
+          </div>
+          <div className="glass-card h-[360px] overflow-hidden">
+            <PendingHandoffPanel active={isLive} pollMs={5000} />
+          </div>
         </aside>
       </section>
 
+      <section className="mt-4">
+        <PipelineBoard pollMs={7000} />
+      </section>
+
       <footer className="mt-6 text-center text-[10px] uppercase tracking-[0.2em] text-ink-500">
-        Call ID: {callId ?? "—"}
+        Call ID: {callId ?? "—"} · {activePersona?.displayName ?? "Sofia"} ·
+        Agora Hackathon Philippines 2026
       </footer>
     </main>
   );
@@ -187,7 +248,7 @@ export default function Dashboard() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-3">
       <dt className="text-ink-400">{label}</dt>
       <dd className="text-right text-ink-200">{value}</dd>
     </div>

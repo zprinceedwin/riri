@@ -11,7 +11,8 @@
     "typecheck": "pnpm -r typecheck",
     "seed:company": "pnpm --filter @riri/api seed:company",
     "seed:prospect": "pnpm --filter @riri/api seed:prospect",
-    "seed:all": "pnpm seed:company && pnpm seed:prospect"
+    "seed:clinic": "pnpm --filter @riri/api seed:clinic",
+    "seed:all": "pnpm seed:company && pnpm seed:prospect && pnpm seed:clinic"
   },
   "devDependencies": {
     "typescript": "^5.5.4",

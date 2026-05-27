@@ -7,6 +7,13 @@
  * are written through to Couchbase via lib/couchbase.ts.
  */
 
+export interface KnownContactSnippet {
+  id: string;
+  name?: string;
+  totalCalls: number;
+  totalBookings: number;
+}
+
 export interface CallSession {
   callId: string;
   agentId: string;
@@ -14,7 +21,10 @@ export interface CallSession {
   personaId: string;
   namespace: string;
   prospectId?: string;
+  knownContact?: KnownContactSnippet;
   startedAt: number;
+  lastCitations?: string[];
+  lastIntent?: string;
 }
 
 const sessionsByAgent = new Map<string, CallSession>();

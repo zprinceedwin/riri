@@ -5,81 +5,95 @@ This is the script. Memorize the beats. The whole build serves this arc.
 ## Stage setup (do this before walking on)
 
 - Dashboard is open on the projector at `/`
-- Persona is set to **Jordan**
-- A teammate is on the floor with a mic, ready to play the prospect
+- Persona is set to **Sofia** (default), pre-loaded caller toggle **ON** so Sofia greets Maria by name
+- A teammate is on the floor with a mic, ready to play Maria Cruz (returning client calling to refresh her Botox)
 - Backup video is open in a second tab, one click away
-- ngrok / cloudflared tunnel is alive; LLM_PROXY_URL env is set to the public URL
-- Couchbase seed has been run; vector index is healthy
+- ngrok / cloudflared tunnel is alive; `LLM_PROXY_URL` env is set to the public URL
+- `pnpm seed:clinic` has been run; calendar is full of available slots and ~50% pre-booked
+- A real email inbox is open on a second monitor (or shared screen) so the Resend confirmation lands visibly
 - Phone is off, laptop charger is in
 
 ## 0:00 — Hook (30 seconds)
 
-> "Quick show of hands — who's seen Rocky?
+> "Who's seen Rocky?
 > I'm Rocky — but for you. That's Riri.
-> We built a voice AI sales platform where you don't just get a bot — you get a closer with personality. Photographic memory of your product and your prospect.
-> Today Jordan's on the line. He's been preparing for this call."
+>
+> Quick story. My Tita Maria runs a derma clinic in BGC. Three out of every ten calls go to voicemail. Half of those calls are clients trying to book five-thousand-peso treatments. That's twenty thousand pesos walking out the door — every single day.
+>
+> Riri is the voice AI receptionist that picks up every single call. Photographic memory of every service, every doctor, every returning client. Today, you'll meet Sofia."
 
-## 0:30 — Frame the ingest (30 seconds)
+## 0:30 — Frame the data (30 seconds)
 
 Show the dashboard:
 
-> "Sixty seconds ago, we fed Jordan everything Couchbase publishes about itself, and a Series-B fintech prospect named Voltline. He's read it all. He remembers all of it. Watch."
+> "Right now you're looking at Belle Aesthetic Manila's front desk. Live calendar. Stats. Pipeline. All of it streaming out of Couchbase Capella in real time.
+>
+> Sixty seconds before this demo, we taught Sofia everything about the clinic — services, doctors, prices, the FAQ, the objection-handling playbook. Now she's about to take a call."
 
-(point at the right panel — "Photographic memory" — empty for now, will fill during the call)
+(point at the calendar — about half the cells filled gold, the other half open)
 
 ## 1:00 — Press the call button (2 minutes 30)
 
-Press the gold call button. Agent joins, you hear the greeting.
+Press the gold call button. Sofia joins.
 
-Teammate plays the prospect role (Sara Mendoza, VP Eng at Voltline). **Cues for the teammate:**
+**Teammate plays Maria Cruz**, a returning client. Cues:
 
-1. **Discovery:** "Hi — sure, what's this about?"
-2. **Skeptical:** "We already use MongoDB Atlas with Atlas Vector Search. What's different about Couchbase?"
-3. **Hard objection:** "We've already standardized on Postgres with pgvector. Why would we move?"
-4. **Interruption test:** start saying "Actually we don't have time today—" then go silent — let Jordan handle the interruption gracefully.
-5. **The close moment:** "Okay, I'm curious. What's the next step?"
+1. **Warm open:** Don't say your name — let Sofia greet you ("Hi Maria, welcome back!") to prove the contact-lookup magic worked.
+2. **The ask:** "Hi Sofia — I'd like to book my Botox refresh."
+3. **Price test:** "How much is it? … that's a lot, actually."
+   *(Sofia should pivot to the 3-session package savings, naturally.)*
+4. **Doctor preference:** "Can I have it with Doctor Santos again?"
+5. **Slot pick:** "Thursday afternoon, two PM works. Yes confirm — my email is the same one on file."
 
 **Watch for these moments to call out live to judges:**
 
-- *When Jordan cites the Sequoia Series B fact about Voltline* → "Notice that — that fact wasn't in the prompt. He pulled it from Couchbase vector search."
-- *When you interrupt mid-sentence and he yields* → "That's Agora's sub-650-millisecond interruption handling. Most voice bots can't do that."
-- *When sources appear in the right panel* → "Those are the Couchbase chunks he's pulling from right now."
+- *When Sofia opens with "Hi Maria, welcome back"* → "Notice that. We never told her the caller's name. Couchbase looked up the contact by phone number and Sofia greeted her with full context."
+- *When Sofia mentions the 3-session package after the price pushback* → "That's the objection-handling playbook firing — vector-retrieved from Couchbase, not hardcoded."
+- *When the calendar cell turns gold (booked) on screen* → "That cell flipping is a Couchbase CAS lock — Sofia just won the race condition for that exact 30-minute slot. Try to book it from another browser tab right now and you'll get rejected."
+- *When the confirmation email shows up on the second monitor* → "That email landed via Resend the moment Sofia confirmed verbally. Not three minutes later. Now."
 
-End the call with the close.
+End the call.
 
-## 3:30 — Persona switch (45 seconds, V1 only)
+## 3:30 — Dashboard reveal (45 seconds)
 
-If V1 shipped:
-> "But maybe Jordan isn't your brand. Maybe you sell to enterprise, and you want someone calmer. Click."
+Land on the summary page:
 
-Switch persona dropdown to **Mike**. Restart the call. Same prospect. Same product. Different soul.
+> "Here's what just happened. Lead score: hot lead, ninety-something. Captured contact. Intent: book_new. Objection handled — price — with effectiveness 'strong'. Sources cited from the Couchbase KB. Next steps, ready for the coordinator.
+>
+> This is the whole call, scored and stored, twelve seconds after she said goodbye."
 
-Run the same hook for 15-20 seconds — judges will hear the contrast in tone.
+Click back to the dashboard. Stats strip ticks up. Pipeline shows a new "NEW" pill on Maria's card. Calendar still shows the gold cell.
 
-> "Same product. Same brain. Different closer. That's our persona engine."
+## 4:15 — Persona switch (optional, V1 only, 30 seconds)
 
-## 4:15 — Dashboard reveal (30 seconds)
+If the persona-engine demo is solid:
 
-End the call. Navigate to summary:
+> "Sofia is just one persona. Belle Aesthetic uses her warmth. Now imagine a Series-B SaaS startup hiring Riri."
 
-> "Here's the dashboard. Live transcript. Qualification score. Captured lead. Sources cited. Objections handled — with effectiveness scoring. Ready for your CRM."
+Switch the persona to Jordan. Start a 20-second call where the teammate plays a SaaS prospect.
 
-## 4:45 — The frame (45 seconds)
+> "Same product. Same Agora voice quality. Same Couchbase RAG. Different soul. We call this the persona engine."
 
-> "Riri — I'm Rocky, but for you. Voice AI sales agents with the personality of a real closer.
-> Built on Agora Conversational AI for sub-650-millisecond voice. Couchbase Capella for the brain — vector RAG over your product knowledge and your prospect intel. Shipped in 7 hours by 4 engineers using TRAE and Cursor.
-> We're not building another chatbot. We're hiring closers.
+## 4:45 — The frame (30 seconds)
+
+> "Riri — I'm Rocky, but for you.
+>
+> Built on Agora Conversational AI for sub-650-millisecond voice. Couchbase Capella for the brain — vector RAG plus operational data in one engine. ElevenLabs for the voice. Deepgram for the ears. Resend for the inbox. Shipped in 7 hours by 4 engineers using TRAE, Cursor, and Claude Code.
+>
+> We're not selling SaaS. We're plugging the leak in your phone.
+>
 > Thank you."
 
 ## Q&A preparation (2 minutes)
 
 Likely questions:
 
-- **"How does this differ from ElevenLabs Convai / Vapi?"** → "Sales-native, not generic. Persona engine, qualification scoring, lead capture, RAG over prospect intel as a first-class feature. Plus Agora's voice quality and Couchbase's vector + JSON in one engine — most competitors stitch two databases."
-- **"What's the business model?"** → "Per-seat SaaS for SDR teams, plus usage-based on voice minutes. Pilots start free, scale by call volume."
-- **"How do you handle hallucinations?"** → "System prompt is explicit: only cite from retrieved CONTEXT. If a fact isn't there, defer. Post-call summary flags any unsupported claims. In practice, the CONTEXT is the safety rail."
-- **"Production-ready?"** → "Today, no — auth, billing, multi-tenant signup, CRM integrations are cut for the hackathon. The voice + RAG + persona core is real and working."
-- **"What about non-English markets?"** → "Agora ASR supports 30+ languages. ElevenLabs supports multilingual voices. The persona prompts are English-tuned today; adding a Tagalog Jordan is a 1-hour change."
+- **"How does this differ from a generic IVR or a chatbot?"** → "Sofia is a closer with photographic memory. Generic IVRs route. Sofia books. She also escalates the moment she sees a medical question — voice AI for clinics has to know its lane."
+- **"What happens if the call needs a human?"** → "Look at the Pending Handoff panel — Sofia generates a handoff record with reason and priority. A coordinator gets the call within five minutes. We don't pretend to be a doctor."
+- **"How do you handle hallucinations?"** → "System prompt is explicit: only cite from retrieved CONTEXT and AVAILABLE_SLOTS. If a fact isn't there, she defers. Post-call summary flags any unsupported claims. The CONTEXT is the safety rail."
+- **"Why Couchbase over Pinecone/Postgres+pgvector?"** → "We need vector RAG and operational slot/contact/booking data in the same engine. Capella does both with one query path. A bolt-on vector DB means a sync pipeline and two failure modes."
+- **"What about non-English / Tagalog / Taglish?"** → "Agora ASR supports 30+ languages. Sofia is English-tuned today. A Tagalog Sofia is a 1-hour swap of the persona JSON plus a Tagalog ElevenLabs voice ID. Filipino dermas would absolutely want her code-switching."
+- **"Production-ready?"** → "Auth, multi-tenant signup, real CRM integrations are cut for the hackathon. Voice + RAG + persona + CAS-based slot reservation + Resend confirmation are real and working."
 
 ## Backup plan if the live call fails
 

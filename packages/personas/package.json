@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./jordan.json": "./jordan.json",
-    "./mike.json": "./mike.json"
+    "./mike.json": "./mike.json",
+    "./sofia.json": "./sofia.json"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

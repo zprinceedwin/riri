@@ -3,12 +3,16 @@
  * Hono on Node, listens on PORT (default 3001).
  *
  * Routes:
- *   /api/agent/start, /api/agent/stop  -- voice agent lifecycle
- *   /api/ingest/url, /text, /prospect  -- RAG ingest
- *   /api/calls/:id/{transcript,summarize} + GET /:id -- post-call
- *   /api/personas, /api/personas/:id   -- persona registry
- *   /v1/chat/completions               -- the custom LLM proxy Agora calls
- *   /health                            -- liveness
+ *   /api/agent/start, /api/agent/stop          -- voice agent lifecycle
+ *   /api/ingest/url, /text, /prospect           -- RAG ingest
+ *   /api/calls/:id/{transcript,summarize} + GET -- post-call
+ *   /api/personas, /api/personas/:id            -- persona registry
+ *   /api/slots, /api/slots/reserve              -- clinic slot list + CAS hold
+ *   /api/bookings/confirm, /api/bookings/:id    -- booking confirmation
+ *   /api/contacts, /api/contacts/by-phone/:p    -- CRM-lite caller lookup
+ *   /api/handoffs                               -- human-in-the-loop escalations
+ *   /v1/chat/completions                        -- the custom LLM proxy Agora calls
+ *   /health                                     -- liveness
  */
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
@@ -20,6 +24,10 @@ import { ingestRoutes } from "./routes/ingest.js";
 import { callRoutes } from "./routes/calls.js";
 import { personaRoutes } from "./routes/personas.js";
 import { llmRoutes } from "./routes/llm.js";
+import { slotRoutes } from "./routes/slots.js";
+import { bookingRoutes } from "./routes/bookings.js";
+import { contactRoutes } from "./routes/contacts.js";
+import { handoffRoutes } from "./routes/handoffs.js";
 
 const app = new Hono();
 
@@ -34,7 +42,6 @@ app.use(
         const allowed = [env.WEB_BASE_URL, "http://localhost:3000"];
         if (!origin) return "*";
         if (allowed.includes(origin)) return origin;
-        // Default: echo origin (hackathon-friendly; tighten before public launch)
         return origin;
       } catch {
         return origin ?? "*";
@@ -56,6 +63,10 @@ app.route("/api/agent", agentRoutes);
 app.route("/api/ingest", ingestRoutes);
 app.route("/api/calls", callRoutes);
 app.route("/api/personas", personaRoutes);
+app.route("/api/slots", slotRoutes);
+app.route("/api/bookings", bookingRoutes);
+app.route("/api/contacts", contactRoutes);
+app.route("/api/handoffs", handoffRoutes);
 app.route("/v1", llmRoutes);
 
 app.onError((err, c) => {
@@ -76,6 +87,7 @@ serve({ fetch: app.fetch, port }, (info) => {
   console.log(`  health:       http://localhost:${info.port}/health`);
   console.log(`  llm proxy:    http://localhost:${info.port}/v1/chat/completions`);
   console.log(`  agent start:  POST http://localhost:${info.port}/api/agent/start`);
+  console.log(`  clinic slots: GET  http://localhost:${info.port}/api/slots`);
   console.log("");
   console.log("Reminder: expose this with cloudflared/ngrok so Agora can reach /v1/chat/completions");
 });

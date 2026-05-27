@@ -17,9 +17,16 @@ const EnvSchema = z.object({
   ELEVENLABS_API_KEY: z.string().min(1),
   ELEVENLABS_VOICE_ID_JORDAN: z.string().min(1),
   ELEVENLABS_VOICE_ID_MIKE: z.string().min(1),
+  ELEVENLABS_VOICE_ID_SOFIA: z.string().min(1),
 
   // Deepgram
   DEEPGRAM_API_KEY: z.string().min(1),
+
+  // Resend (transactional email for booking confirmations)
+  RESEND_API_KEY: z.string().min(1),
+  RESEND_FROM_EMAIL: z
+    .string()
+    .default("Riri Clinic <onboarding@resend.dev>"),
 
   // Couchbase
   COUCHBASE_CONNECTION_STRING: z.string().min(1),
@@ -29,12 +36,25 @@ const EnvSchema = z.object({
   COUCHBASE_SCOPE: z.string().default("_default"),
   COUCHBASE_COLLECTION_KNOWLEDGE: z.string().default("knowledge"),
   COUCHBASE_COLLECTION_CALLS: z.string().default("calls"),
+  COUCHBASE_COLLECTION_SLOTS: z.string().default("slots"),
+  COUCHBASE_COLLECTION_CONTACTS: z.string().default("contacts"),
+  COUCHBASE_COLLECTION_BOOKINGS: z.string().default("bookings"),
+  COUCHBASE_COLLECTION_HANDOFFS: z.string().default("handoffs"),
   COUCHBASE_VECTOR_INDEX: z.string().default("riri_vector_idx"),
+
+  // Clinic identity
+  CLINIC_NAME: z.string().default("Belle Aesthetic Manila"),
+  CLINIC_DEMO_NAMESPACE: z.string().default("clinic-belle-manila"),
+  CLINIC_ADDRESS_LINE: z
+    .string()
+    .default("Ground Floor, Bonifacio High Street, BGC, Taguig"),
 
   // App
   PORT: z.coerce.number().default(3001),
   API_BASE_URL: z.string().default("http://localhost:3001"),
-  LLM_PROXY_URL: z.string().default("http://localhost:3001/v1/chat/completions"),
+  LLM_PROXY_URL: z
+    .string()
+    .default("http://localhost:3001/v1/chat/completions"),
   WEB_BASE_URL: z.string().default("http://localhost:3000"),
 });
 
@@ -48,7 +68,9 @@ export function getEnv(): Env {
   if (!parsed.success) {
     console.error("Invalid environment configuration:");
     console.error(parsed.error.flatten().fieldErrors);
-    throw new Error("Environment validation failed. See .env.example for required keys.");
+    throw new Error(
+      "Environment validation failed. See .env.example for required keys."
+    );
   }
   cached = parsed.data;
   return cached;
