@@ -40,7 +40,6 @@ export interface StartAgentParams {
   agentUid: string;
   remoteUid: string;
   persona: Persona;
-  /** Opaque context the LLM proxy will receive on every /v1/chat/completions call. */
   llmContext: {
     callId: string;
     personaId: string;
@@ -61,6 +60,16 @@ export interface StartedAgent {
   createdAt: number;
 }
 
+export type AgentStatus = "IDLE" | "STARTING" | "RUNNING" | "STOPPING" | "STOPPED" | "FAILED";
+
+export interface AgentStatusResponse {
+  agentId: string;
+  status: AgentStatus;
+  name: string;
+  startTs: number;
+  stopTs: number;
+}
+
 const AGORA_API_BASE = "https://api.agora.io/api/conversational-ai-agent/v2";
 
 export async function startConvoAgent(params: StartAgentParams): Promise<StartedAgent> {
@@ -69,7 +78,6 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
 
   const tts = buildTtsConfig(params.persona);
 
-  // Pre-warm the greeting when we know the caller (Sofia returning-client flow).
   const known = params.llmContext.knownContact;
   const greetingMessage = known?.name
     ? `Hi ${firstName(known.name)}, welcome back to Belle Aesthetic Manila — this is Sofia. What can I help you with today?`
@@ -91,11 +99,38 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
         data_channel: "rtm",
         enable_metrics: true,
         enable_error_message: true,
+        silence_config: {
+          timeout_ms: 15_000,
+          action: "speak",
+          content: "I'm still here — take your time.",
+        },
+        farewell_config: {
+          graceful_enabled: true,
+          graceful_timeout_seconds: 10,
+        },
+      },
+      turn_detection: {
+        mode: "default",
+        config: {
+          start_of_speech: {
+            mode: "vad",
+            vad_config: {
+              interrupt_duration_ms: 200,
+              speaking_interrupt_duration_ms: 200,
+              prefix_padding_ms: 300,
+            },
+          },
+          end_of_speech: {
+            mode: "semantic",
+            semantic_config: {
+              silence_duration_ms: 480,
+              max_wait_ms: 3000,
+            },
+          },
+        },
       },
       llm: {
         url: env.LLM_PROXY_URL,
-        // We don't pass an API key because the proxy is ours -- but Agora still
-        // forwards the header to our endpoint, so set anything non-empty.
         api_key: "Riri-internal",
         system_messages: [
           {
@@ -104,17 +139,20 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
           },
         ],
         greeting_message: greetingMessage,
+        greeting_config: {
+          mode: "single_every",
+          delay_ms: 800,
+          interruptable: true,
+        },
         failure_message: "Sorry, I missed that -- could you say it again?",
         max_history: 12,
         params: {
           model: env.OPENAI_LLM_MODEL,
-          // We pass our context as an OpenAI passthrough field. Our proxy reads it.
           riri_context: params.llmContext,
         },
       },
       asr: {
         language: AGORA_DEFAULTS.asrLanguage,
-        // Use Deepgram for ASR (lower latency than Azure for English).
         vendor: "deepgram",
         params: {
           key: env.DEEPGRAM_API_KEY,
@@ -124,6 +162,9 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
       tts,
     },
   };
+
+  console.log(`[agora] Starting agent Riri-${params.llmContext.callId} in channel ${params.channel}`);
+  console.log(`[agora] LLM URL: ${env.LLM_PROXY_URL}`);
 
   const res = await fetch(url, {
     method: "POST",
@@ -136,6 +177,7 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
 
   if (!res.ok) {
     const text = await res.text();
+    console.error(`[agora] Start agent failed: ${res.status}`, text);
     throw new Error(`Agora start agent failed: ${res.status} ${text}`);
   }
 
@@ -144,6 +186,9 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
     create_ts: number;
     status: string;
   };
+
+  console.log(`[agora] Agent started: id=${json.agent_id} status=${json.status}`);
+
   return {
     agentId: json.agent_id,
     status: json.status,
@@ -154,14 +199,90 @@ export async function startConvoAgent(params: StartAgentParams): Promise<Started
 export async function stopConvoAgent(agentId: string): Promise<void> {
   const env = getEnv();
   const url = `${AGORA_API_BASE}/projects/${env.AGORA_APP_ID}/agents/${agentId}/leave`;
+
+  console.log(`[agora] Stopping agent ${agentId}`);
+
   const res = await fetch(url, {
     method: "POST",
     headers: { Authorization: basicAuth() },
   });
   if (!res.ok && res.status !== 404) {
     const text = await res.text();
+    console.error(`[agora] Stop agent failed: ${res.status}`, text);
     throw new Error(`Agora stop agent failed: ${res.status} ${text}`);
   }
+
+  console.log(`[agora] Agent ${agentId} stopped (status=${res.status})`);
+}
+
+export async function queryAgentStatus(agentId: string): Promise<AgentStatusResponse> {
+  const env = getEnv();
+  const url = `${AGORA_API_BASE}/projects/${env.AGORA_APP_ID}/agents/${agentId}`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { Authorization: basicAuth() },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Agora query agent failed: ${res.status} ${text}`);
+  }
+
+  const json = (await res.json()) as {
+    agent_id: string;
+    status: string;
+    name: string;
+    start_ts: number;
+    stop_ts: number;
+  };
+
+  return {
+    agentId: json.agent_id,
+    status: json.status as AgentStatus,
+    name: json.name,
+    startTs: json.start_ts,
+    stopTs: json.stop_ts,
+  };
+}
+
+export async function updateAgentConfig(
+  agentId: string,
+  updates: { token?: string; systemMessages?: Array<{ role: string; content: string }> }
+): Promise<StartedAgent> {
+  const env = getEnv();
+  const url = `${AGORA_API_BASE}/projects/${env.AGORA_APP_ID}/agents/${agentId}/update`;
+
+  const properties: Record<string, unknown> = {};
+  if (updates.token) properties.token = updates.token;
+  if (updates.systemMessages) {
+    properties.llm = { system_messages: updates.systemMessages };
+  }
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: basicAuth(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ properties }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Agora update agent failed: ${res.status} ${text}`);
+  }
+
+  const json = (await res.json()) as {
+    agent_id: string;
+    create_ts: number;
+    status: string;
+  };
+
+  return {
+    agentId: json.agent_id,
+    status: json.status,
+    createdAt: json.create_ts,
+  };
 }
 
 function firstName(full: string): string {

@@ -51,3 +51,32 @@ export function unregisterAgent(agentId: string): CallSession | undefined {
   }
   return s;
 }
+
+export function getAllSessions(): CallSession[] {
+  return Array.from(sessionsByAgent.values());
+}
+
+const MAX_SESSION_AGE_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+export function purgeStale(): number {
+  const cutoff = Date.now() - MAX_SESSION_AGE_MS;
+  let purged = 0;
+  for (const [agentId, s] of sessionsByAgent) {
+    if (s.startedAt < cutoff) {
+      sessionsByAgent.delete(agentId);
+      purged++;
+    }
+  }
+  for (const [callId, s] of sessionsByCall) {
+    if (s.startedAt < cutoff) {
+      sessionsByCall.delete(callId);
+      purged++;
+    }
+  }
+  return purged;
+}
+
+setInterval(() => {
+  const n = purgeStale();
+  if (n > 0) console.log(`[store] Purged ${n} stale session entries`);
+}, 10 * 60 * 1000);

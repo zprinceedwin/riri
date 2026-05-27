@@ -3,15 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PersonaId } from "@riri/shared";
 import { cn } from "@/lib/cn";
-import { joinCall, type AgentState, type CallHandle, type TranscriptTurn } from "@/lib/agora";
+import { joinCall, type AgentState, type CallHandle, type ConnectionState, type TranscriptTurn } from "@/lib/agora";
 import { startAgent, stopAgent } from "@/lib/api";
 
-export type CallStatus = "idle" | "connecting" | "live" | "ending" | "error";
+export type CallStatus = "idle" | "connecting" | "live" | "reconnecting" | "ending" | "error";
+
+const CONNECTION_TIMEOUT_MS = 20_000;
 
 export interface PushToTalkProps {
   personaId: PersonaId;
   prospectId?: string;
-  /** Optional caller phone for contact lookup (used by Sofia for warm greetings). */
   phone?: string;
   onTranscript: (t: TranscriptTurn) => void;
   onAgentState: (s: AgentState) => void;
@@ -23,47 +24,96 @@ export interface PushToTalkProps {
 export function PushToTalk(props: PushToTalkProps) {
   const [status, setStatus] = useState<CallStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [callDuration, setCallDuration] = useState(0);
   const handleRef = useRef<CallHandle | null>(null);
   const callRef = useRef<{ callId: string; agentId: string } | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Forward status changes upstream.
   useEffect(() => {
     props.onStatusChange(status);
   }, [status, props]);
 
+  const clearTimers = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+
   const start = useCallback(async () => {
     setError(null);
+    setCallDuration(0);
     setStatus("connecting");
-    try {
-      const session = await startAgent({
-        personaId: props.personaId,
-        prospectId: props.prospectId,
-        phone: props.phone,
-      });
 
-      const handle = await joinCall({
-        appId: session.appId,
-        channel: session.channel,
-        uid: session.uid,
-        rtcToken: session.rtcToken,
-      });
+    const timeout = new Promise<never>((_, reject) => {
+      timeoutRef.current = setTimeout(
+        () => reject(new Error("Connection timed out — check your network and try again")),
+        CONNECTION_TIMEOUT_MS
+      );
+    });
+
+    try {
+      const session = await Promise.race([
+        startAgent({
+          personaId: props.personaId,
+          prospectId: props.prospectId,
+          phone: props.phone,
+        }),
+        timeout,
+      ]);
+
+      const handle = await Promise.race([
+        joinCall({
+          appId: session.appId,
+          channel: session.channel,
+          uid: session.uid,
+          rtcToken: session.rtcToken,
+        }),
+        timeout,
+      ]);
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
 
       handle.onTranscript((t) => props.onTranscript(t));
       handle.onAgentState((s) => props.onAgentState(s));
+
+      handle.onConnectionState((cur: ConnectionState) => {
+        if (cur === "RECONNECTING") setStatus("reconnecting");
+        else if (cur === "CONNECTED") setStatus("live");
+      });
+
+      handle.onError((msg) => {
+        setError(msg);
+      });
 
       handleRef.current = handle;
       callRef.current = { callId: session.callId, agentId: session.agentId };
       props.onCallStarted(callRef.current);
       setStatus("live");
+
+      const startMs = Date.now();
+      timerRef.current = setInterval(() => {
+        setCallDuration(Math.floor((Date.now() - startMs) / 1000));
+      }, 1000);
     } catch (err) {
+      clearTimers();
       console.error(err);
       setError(err instanceof Error ? err.message : "Failed to start call");
       setStatus("error");
     }
-  }, [props]);
+  }, [props, clearTimers]);
 
   const stop = useCallback(async () => {
     setStatus("ending");
+    clearTimers();
     const call = callRef.current;
     try {
       await handleRef.current?.leave();
@@ -80,22 +130,29 @@ export function PushToTalk(props: PushToTalkProps) {
       props.onCallEnded({ callId: call.callId });
     }
     callRef.current = null;
+    setCallDuration(0);
     setStatus("idle");
-  }, [props]);
+  }, [props, clearTimers]);
 
-  // Defensive cleanup if the component unmounts mid-call
   useEffect(() => {
     return () => {
+      clearTimers();
       handleRef.current?.leave().catch(() => undefined);
     };
-  }, []);
+  }, [clearTimers]);
 
   const interrupt = useCallback(async () => {
     await handleRef.current?.interrupt();
   }, []);
 
-  const isLive = status === "live";
+  const isLive = status === "live" || status === "reconnecting";
   const isBusy = status === "connecting" || status === "ending";
+
+  const fmtDuration = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${String(sec).padStart(2, "0")}`;
+  };
 
   return (
     <div className="flex flex-col items-center gap-5 px-6 py-8">
@@ -109,16 +166,30 @@ export function PushToTalk(props: PushToTalkProps) {
             ? "bg-gradient-to-br from-rose-500 to-rose-700 text-white shadow-2xl shadow-rose-700/40 hover:scale-[1.02]"
             : isBusy
               ? "cursor-wait bg-ink-700 text-ink-300"
-              : "bg-gradient-to-br from-gold-400 to-gold-600 text-ink-950 shadow-2xl shadow-gold-700/40 hover:scale-[1.02] animate-pulse-glow"
+              : status === "error"
+                ? "bg-gradient-to-br from-rose-400 to-rose-600 text-white shadow-2xl shadow-rose-700/40 hover:scale-[1.02]"
+                : "bg-gradient-to-br from-gold-400 to-gold-600 text-ink-950 shadow-2xl shadow-gold-700/40 hover:scale-[1.02] animate-pulse-glow"
         )}
       >
         <div className="flex flex-col items-center gap-1">
-          <span className="text-3xl leading-none">{isLive ? "■" : "🎤"}</span>
+          <span className="text-3xl leading-none">
+            {isLive ? "■" : status === "error" ? "↻" : "🎤"}
+          </span>
           <span className="text-xs uppercase tracking-[0.18em]">
-            {isLive ? "End call" : isBusy ? "Working" : "Start call"}
+            {isLive ? "End call" : isBusy ? "Working" : status === "error" ? "Retry" : "Start call"}
           </span>
         </div>
       </button>
+
+      {isLive && callDuration > 0 && (
+        <span className="text-sm font-mono tabular-nums text-ink-400">
+          {fmtDuration(callDuration)}
+        </span>
+      )}
+
+      {status === "reconnecting" && (
+        <p className="text-xs text-amber-400 animate-pulse">Reconnecting...</p>
+      )}
 
       {isLive && (
         <button

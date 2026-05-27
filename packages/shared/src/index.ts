@@ -495,7 +495,9 @@ export const ROUTE = {
 export const AGORA_DEFAULTS = {
   agentRtcUid: "0",
   remoteRtcUid: "1002",
-  idleTimeoutSec: 120,
+  // Agora REST API idle_timeout: seconds until the agent auto-exits when all
+  // subscribed remote users have left the channel. 0 = manual teardown only.
+  idleTimeoutSec: 30,
   asrLanguage: "en-US",
 } as const;
 
