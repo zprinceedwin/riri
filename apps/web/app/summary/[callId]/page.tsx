@@ -86,7 +86,7 @@ export default function CallSummaryPage({ params }: { params: { callId: string }
               </span>
               <p className="text-sm leading-relaxed text-rose-100">
                 {summary.handoffReason ??
-                  "Sofia escalated this call. A coordinator should follow up within 5 minutes."}
+                  "Riri escalated this call. A coordinator should follow up within 5 minutes."}
               </p>
             </div>
           )}
