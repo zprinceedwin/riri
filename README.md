@@ -122,11 +122,18 @@ pnpm seed:clinic     # V0: clinic KB, 14 days of slots, contacts, bookings
 # Optional: pnpm seed:company && pnpm seed:prospect (B2B demo for Jordan/Mike)
 # Or: pnpm seed:all to run all three
 
-# 5. Expose the API publicly (Agora needs to reach our LLM proxy)
-# In a separate terminal:
-# cloudflared tunnel --url http://localhost:3001
-# (or: ngrok http 3001)
-# Update LLM_PROXY_URL in .env with the public URL it gives you
+# 5. Deploy the API to Railway (Agora needs to reach our LLM proxy + /mcp)
+# - Sign in at https://railway.com and create a new project from this GitHub repo
+# - Railway auto-detects railway.json and runs `pnpm install` + `pnpm --filter @riri/api start:prod`
+# - In Railway > Variables, paste every key from your local .env EXCEPT:
+#     * Do NOT set PORT (Railway injects its own)
+#     * Set LLM_PROXY_URL to: https://${{ RAILWAY_PUBLIC_DOMAIN }}/v1/chat/completions
+#     * Keep WEB_BASE_URL=http://localhost:3000 (web stays local for the demo)
+# - After the first deploy, Railway gives you https://<your-app>.up.railway.app
+# - Update your local .env:
+#     NEXT_PUBLIC_API_BASE_URL=https://<your-app>.up.railway.app
+# - In Agora Console > Conversational AI Studio > Integrations > MCPs, point the
+#   server URL at https://<your-app>.up.railway.app/mcp
 
 # 6. Run both apps
 pnpm dev
