@@ -38,18 +38,25 @@ app.use(
   "*",
   cors({
     origin: (origin) => {
-      // Permissive in dev; tighten via WEB_BASE_URL allowlist in prod
       try {
         const env = getEnv();
-        const allowed = [env.WEB_BASE_URL, "http://localhost:3000"];
-        if (!origin) return "*";
+        const allowed = [
+          env.WEB_BASE_URL,
+          "http://localhost:3000",
+          "http://localhost:3001",
+        ];
+        if (!origin) return env.WEB_BASE_URL;
         if (allowed.includes(origin)) return origin;
-        return origin;
+        if (process.env.NODE_ENV !== "production") return origin;
+        console.warn(`[cors] Blocked origin: ${origin}`);
+        return allowed[0];
       } catch {
         return origin ?? "*";
       }
     },
     credentials: true,
+    allowHeaders: ["Content-Type", "Authorization"],
+    allowMethods: ["GET", "POST", "OPTIONS"],
   })
 );
 

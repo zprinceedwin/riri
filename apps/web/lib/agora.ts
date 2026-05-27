@@ -1,20 +1,3 @@
-/**
- * Browser-side Agora helpers: join an RTC channel, render the agent's audio,
- * publish the local mic, parse incoming stream-message transcripts.
- *
- * We intentionally keep this small. We do NOT depend on the optional
- * @agora-io/conversational-ai-api file from the docs (which is meant to be
- * copy-pasted into your project) -- instead we listen directly to the RTC
- * `stream-message` event, which is what the toolkit wraps under the hood.
- *
- * Transcript message format observed from Agora Convo AI:
- *   - JSON payload in the data frame
- *   - object: "user.transcription" | "assistant.transcription"
- *   - text, turn_id, stream_id, final
- *
- * Older / fragmented frames have a small binary header; we attempt JSON parse
- * first and skip frames that don't decode cleanly. Good enough for v0.
- */
 "use client";
 
 import AgoraRTC, {
@@ -29,6 +12,8 @@ if (typeof window !== "undefined") {
 }
 
 export type AgentState = "idle" | "listening" | "thinking" | "speaking" | "silent";
+
+export type ConnectionState = "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "RECONNECTING" | "DISCONNECTING";
 
 export interface TranscriptTurn {
   role: "user" | "assistant";
@@ -45,6 +30,8 @@ export interface CallHandle {
   interrupt: () => Promise<void>;
   onTranscript: (cb: (t: TranscriptTurn) => void) => () => void;
   onAgentState: (cb: (s: AgentState) => void) => () => void;
+  onConnectionState: (cb: (s: ConnectionState, prev: ConnectionState) => void) => () => void;
+  onError: (cb: (msg: string) => void) => () => void;
 }
 
 export interface JoinCallOptions {
@@ -59,8 +46,26 @@ export async function joinCall(opts: JoinCallOptions): Promise<CallHandle> {
 
   const transcriptListeners = new Set<(t: TranscriptTurn) => void>();
   const stateListeners = new Set<(s: AgentState) => void>();
+  const connectionListeners = new Set<(s: ConnectionState, prev: ConnectionState) => void>();
+  const errorListeners = new Set<(msg: string) => void>();
 
   const decoder = new TextDecoder();
+
+  client.on("connection-state-change", (cur, prev, reason) => {
+    console.log(`[agora-web] Connection: ${prev} → ${cur} (${reason ?? "n/a"})`);
+    connectionListeners.forEach((cb) => cb(cur as ConnectionState, prev as ConnectionState));
+
+    if (cur === "DISCONNECTED" && prev === "CONNECTED") {
+      const msg = `Connection lost: ${reason ?? "unknown"}`;
+      console.warn(`[agora-web] ${msg}`);
+      errorListeners.forEach((cb) => cb(msg));
+    }
+  });
+
+  client.on("exception", (evt) => {
+    console.warn("[agora-web] Exception:", evt.code, evt.msg);
+    errorListeners.forEach((cb) => cb(`Agora exception: ${evt.msg}`));
+  });
 
   client.on("user-published", async (user: IAgoraRTCRemoteUser, mediaType) => {
     await client.subscribe(user, mediaType);
@@ -75,7 +80,6 @@ export async function joinCall(opts: JoinCallOptions): Promise<CallHandle> {
     }
   });
 
-  // Transcripts and agent state events come through stream-message.
   client.on("stream-message", (_uid: number | string, payload: Uint8Array) => {
     let text: string;
     try {
@@ -83,8 +87,6 @@ export async function joinCall(opts: JoinCallOptions): Promise<CallHandle> {
     } catch {
       return;
     }
-    // Some frames have a small binary header; try to extract JSON between the
-    // first '{' and last '}'.
     const start = text.indexOf("{");
     const end = text.lastIndexOf("}");
     if (start === -1 || end === -1 || end <= start) return;
@@ -119,6 +121,10 @@ export async function joinCall(opts: JoinCallOptions): Promise<CallHandle> {
     }
   });
 
+  client.on("stream-message-error", (_uid: number | string, streamId: number, code: number, missed: number, cached: number) => {
+    console.warn(`[agora-web] Stream msg error: stream=${streamId} code=${code} missed=${missed} cached=${cached}`);
+  });
+
   await client.join(opts.appId, opts.channel, opts.rtcToken, opts.uid);
 
   const mic = await AgoraRTC.createMicrophoneAudioTrack({
@@ -146,10 +152,10 @@ export async function joinCall(opts: JoinCallOptions): Promise<CallHandle> {
       }
       transcriptListeners.clear();
       stateListeners.clear();
+      connectionListeners.clear();
+      errorListeners.clear();
     },
     async interrupt() {
-      // Send an interrupt control message over the stream. The Convo AI engine
-      // listens for this and stops speaking immediately.
       try {
         const enc = new TextEncoder();
         const payload = enc.encode(JSON.stringify({ object: "user.interrupt", ts: Date.now() }));
@@ -166,6 +172,14 @@ export async function joinCall(opts: JoinCallOptions): Promise<CallHandle> {
     onAgentState(cb) {
       stateListeners.add(cb);
       return () => stateListeners.delete(cb);
+    },
+    onConnectionState(cb) {
+      connectionListeners.add(cb);
+      return () => connectionListeners.delete(cb);
+    },
+    onError(cb) {
+      errorListeners.add(cb);
+      return () => errorListeners.delete(cb);
     },
   };
 }
