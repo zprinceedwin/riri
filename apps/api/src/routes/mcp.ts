@@ -14,7 +14,7 @@
  * responses -- no SSE streaming needed for our tools.
  *
  * Public entry point: POST /mcp
- * Public URL pattern: https://<your-railway-app>.up.railway.app/mcp
+ * Public URL pattern: https://<your-app>.vercel.app/mcp
  */
 import { Hono } from "hono";
 import { embed } from "../lib/voyage.js";
