@@ -122,11 +122,20 @@ pnpm seed:clinic     # V0: clinic KB, 14 days of slots, contacts, bookings
 # Optional: pnpm seed:company && pnpm seed:prospect (B2B demo for Jordan/Mike)
 # Or: pnpm seed:all to run all three
 
-# 5. Expose the API publicly (Agora needs to reach our LLM proxy)
-# In a separate terminal:
-# cloudflared tunnel --url http://localhost:3001
-# (or: ngrok http 3001)
-# Update LLM_PROXY_URL in .env with the public URL it gives you
+# 5. Deploy the API to Vercel (Agora needs to reach our LLM proxy + /mcp)
+# - Sign in at https://vercel.com and import this GitHub repo as a new project
+# - Framework Preset: Other. Root Directory: leave blank (repo root).
+# - Vercel reads vercel.json: runs `pnpm install --frozen-lockfile` and
+#   serves the function at `api/index.ts`
+# - In Project Settings > Environment Variables, paste every key from your local .env EXCEPT:
+#     * Do NOT set PORT (Vercel functions don't bind a port)
+#     * Skip LLM_PROXY_URL for the FIRST deploy
+#     * Keep WEB_BASE_URL=http://localhost:3000 (web stays local for the demo)
+# - Deploy. Vercel gives you https://<your-app>.vercel.app
+# - Add LLM_PROXY_URL=https://<your-app>.vercel.app/v1/chat/completions to env vars and redeploy
+# - Update your local .env: NEXT_PUBLIC_API_BASE_URL=https://<your-app>.vercel.app
+# - In Agora Console > Conversational AI Studio > Integrations > MCPs, point the
+#   server URL at https://<your-app>.vercel.app/mcp
 
 # 6. Run both apps
 pnpm dev

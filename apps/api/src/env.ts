@@ -7,12 +7,10 @@ const EnvSchema = z.object({
   AGORA_CUSTOMER_ID: z.string().min(1),
   AGORA_CUSTOMER_SECRET: z.string().min(1),
 
-  // OpenAI (kept for the post-call summarizer until we swap that too; not used
-  // for embeddings any more -- Voyage handles those.)
+  // OpenAI (LLM proxy + post-call summarizer; embeddings live in Voyage).
   OPENAI_API_KEY: z.string().min(1),
   OPENAI_LLM_MODEL: z.string().default("gpt-4o-mini"),
   OPENAI_SUMMARY_MODEL: z.string().default("gpt-4o"),
-  OPENAI_EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
 
   // Voyage AI (embeddings for RAG)
   VOYAGE_API_KEY: z.string().min(1),
@@ -37,7 +35,6 @@ const EnvSchema = z.object({
   // Supabase
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  SUPABASE_EMBEDDING_DIMENSIONS: z.coerce.number().int().positive().default(1536),
 
   // Clinic identity
   CLINIC_NAME: z.string().default("Belle Aesthetic Manila"),
@@ -48,7 +45,6 @@ const EnvSchema = z.object({
 
   // App
   PORT: z.coerce.number().default(3001),
-  API_BASE_URL: z.string().default("http://localhost:3001"),
   LLM_PROXY_URL: z
     .string()
     .default("http://localhost:3001/v1/chat/completions"),
