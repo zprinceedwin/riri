@@ -11,6 +11,7 @@
  *   /api/bookings/confirm, /api/bookings/:id    -- booking confirmation
  *   /api/contacts, /api/contacts/by-phone/:p    -- CRM-lite caller lookup
  *   /api/handoffs                               -- human-in-the-loop escalations
+ *   /api/services, /api/doctors                 -- static clinic catalog
  *   /v1/chat/completions                        -- the custom LLM proxy Agora calls
  *   /health                                     -- liveness
  */
@@ -28,6 +29,7 @@ import { slotRoutes } from "./routes/slots.js";
 import { bookingRoutes } from "./routes/bookings.js";
 import { contactRoutes } from "./routes/contacts.js";
 import { handoffRoutes } from "./routes/handoffs.js";
+import { catalogRoutes } from "./routes/catalog.js";
 
 const app = new Hono();
 
@@ -67,6 +69,7 @@ app.route("/api/slots", slotRoutes);
 app.route("/api/bookings", bookingRoutes);
 app.route("/api/contacts", contactRoutes);
 app.route("/api/handoffs", handoffRoutes);
+app.route("/api", catalogRoutes);
 app.route("/v1", llmRoutes);
 
 app.onError((err, c) => {
